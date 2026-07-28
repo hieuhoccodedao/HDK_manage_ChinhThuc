@@ -1,42 +1,46 @@
 // util/DatabaseConnection.java
 package hdkmanagement.util;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 import javax.swing.JOptionPane;
 
 public class DatabaseConnection {
-    // Thông tin kết nối database
-    private static final String HOST = "localhost";
-    private static final String PORT = "3306";
-    private static final String DATABASE = "hdk_management";
-    private static final String USER = "root";
-    private static final String PASSWORD = "";
-    private static final String URL = "jdbc:mysql://" + HOST + ":" + PORT + "/" + DATABASE;
+    private static String host = "127.0.0.1";
+    private static String port = "3306";
+    private static String database = "hdk_management";
+    private static String user = "root";
+    private static String password = "";
     
+    private static String url = "";
     private static Connection connection = null;
-    private static DatabaseConnection instance = null;
+    private static volatile DatabaseConnection instance = null; // Thread-safe singleton
     
     // Private constructor (Singleton pattern)
     private DatabaseConnection() {
+        loadConfig();
+        url = "jdbc:mysql://" + host + ":" + port + "/" + database;
         try {
             // Đăng ký driver MySQL
             Class.forName("com.mysql.cj.jdbc.Driver");
             // Tạo kết nối
-            connection = DriverManager.getConnection(URL, USER, PASSWORD);
-            System.out.println("✅ Kết nối database thành công!");
+            connection = DriverManager.getConnection(url, user, password);
+            System.out.println(" Kết nối database thành công!");
         } catch (ClassNotFoundException e) {
-            System.err.println("❌ Không tìm thấy driver MySQL!");
+            System.err.println(" Không tìm thấy driver MySQL!");
             JOptionPane.showMessageDialog(null, 
                 "Không tìm thấy driver MySQL!\nVui lòng kiểm tra thư viện.", 
                 "Lỗi", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         } catch (SQLException e) {
-            System.err.println("❌ Không thể kết nối database!");
+            System.err.println(" Không thể kết nối database!");
             JOptionPane.showMessageDialog(null, 
                 "Không thể kết nối database!\n" + e.getMessage(), 
                 "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -44,10 +48,28 @@ public class DatabaseConnection {
         }
     }
     
-    // Lấy instance duy nhất (Singleton)
+    private void loadConfig() {
+        Properties prop = new Properties();
+        try (FileInputStream fis = new FileInputStream("config.properties")) {
+            prop.load(fis);
+            host = prop.getProperty("db.host", "127.0.0.1");
+            port = prop.getProperty("db.port", "3306");
+            database = prop.getProperty("db.name", "hdk_management");
+            user = prop.getProperty("db.user", "root");
+            password = prop.getProperty("db.password", "");
+        } catch (IOException e) {
+            System.out.println("️ Không tìm thấy file config.properties. Đang sử dụng cấu hình mặc định.");
+        }
+    }
+    
+    // Lấy instance duy nhất (Singleton) - Double Checked Locking
     public static DatabaseConnection getInstance() {
         if (instance == null) {
-            instance = new DatabaseConnection();
+            synchronized (DatabaseConnection.class) {
+                if (instance == null) {
+                    instance = new DatabaseConnection();
+                }
+            }
         }
         return instance;
     }
@@ -56,7 +78,7 @@ public class DatabaseConnection {
     public Connection getConnection() {
         try {
             if (connection == null || connection.isClosed()) {
-                connection = DriverManager.getConnection(URL, USER, PASSWORD);
+                connection = DriverManager.getConnection(url, user, password);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -78,7 +100,7 @@ public class DatabaseConnection {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
-                System.out.println("🔒 Đã đóng kết nối database");
+                System.out.println(" Đã đóng kết nối database");
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -115,12 +137,12 @@ public class DatabaseConnection {
         try {
             DatabaseConnection db = DatabaseConnection.getInstance();
             if (db.isConnected()) {
-                System.out.println("✅ Kết nối database đang hoạt động!");
+                System.out.println(" Kết nối database đang hoạt động!");
             } else {
-                System.out.println("❌ Kết nối database không hoạt động!");
+                System.out.println(" Kết nối database không hoạt động!");
             }
         } catch (Exception e) {
-            System.err.println("❌ Lỗi kiểm tra kết nối: " + e.getMessage());
+            System.err.println(" Lỗi kiểm tra kết nối: " + e.getMessage());
         }
     }
 }

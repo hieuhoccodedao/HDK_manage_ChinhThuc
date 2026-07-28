@@ -47,7 +47,7 @@ public class NhaCungCapDAO implements IDAO<NhaCungCap> {
     @Override
     public boolean update(NhaCungCap entity) {
         String sql = "UPDATE NhaCungCap SET TenNCC = ?, NguoiDaiDien = ?, DiaChi = ?, " +
-                     "SDT = ?, Email = ?, GhiChu = ?, TrangThai = ? WHERE MaNCC = ?";
+                     "SDT = ?, Email = ?, GhiChu = ?, TrangThai = ?, CongNo = ? WHERE MaNCC = ?";
         try (PreparedStatement ps = db.getConnection().prepareStatement(sql)) {
             ps.setString(1, entity.getTenNCC());
             ps.setString(2, entity.getNguoiDaiDien());
@@ -56,7 +56,8 @@ public class NhaCungCapDAO implements IDAO<NhaCungCap> {
             ps.setString(5, entity.getEmail());
             ps.setString(6, entity.getGhiChu());
             ps.setBoolean(7, entity.isTrangThai());
-            ps.setInt(8, entity.getMaNCC());
+            ps.setDouble(8, entity.getCongNo());
+            ps.setInt(9, entity.getMaNCC());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -147,6 +148,20 @@ public class NhaCungCapDAO implements IDAO<NhaCungCap> {
         String sql = "SELECT * FROM NhaCungCap WHERE MaNCC_Code = ? AND TrangThai = 1";
         try (PreparedStatement ps = db.getConnection().prepareStatement(sql)) {
             ps.setString(1, code);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return mapResultSetToNhaCungCap(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    public NhaCungCap getByPhone(String phone) {
+        String sql = "SELECT * FROM NhaCungCap WHERE SDT = ? AND TrangThai = 1";
+        try (PreparedStatement ps = db.getConnection().prepareStatement(sql)) {
+            ps.setString(1, phone);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return mapResultSetToNhaCungCap(rs);

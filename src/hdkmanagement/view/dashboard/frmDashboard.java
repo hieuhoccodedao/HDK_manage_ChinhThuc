@@ -1,7 +1,15 @@
-// view/dashboard/frmDashboard.java
 package hdkmanagement.view.dashboard;
 
+import hdkmanagement.controller.KhachHangController;
+import hdkmanagement.controller.SanPhamController;
+import hdkmanagement.dao.HoaDonDAO;
+import hdkmanagement.model.HoaDon;
+import hdkmanagement.model.KhachHang;
+import hdkmanagement.model.SanPham;
+import hdkmanagement.util.IconUtil;
 import hdkmanagement.util.SessionManager;
+import hdkmanagement.util.ValidateUtil;
+import hdkmanagement.view.common.UITheme;
 import hdkmanagement.view.auth.frmDangNhap;
 import hdkmanagement.view.customer.frmKhachHang;
 import hdkmanagement.view.employee.frmNhanVien;
@@ -10,14 +18,25 @@ import hdkmanagement.view.product.frmSanPham;
 import hdkmanagement.view.purchase.frmNhapHang;
 import hdkmanagement.view.sale.frmBanHang;
 import hdkmanagement.view.supplier.frmNhaCungCap;
-import hdkmanagement.view.inventory.frmKhoHang;
 import hdkmanagement.view.report.frmBaoCao;
+import hdkmanagement.view.system.frmXemLog;
+import hdkmanagement.view.sale.frmKhuyenMai;
+import hdkmanagement.view.inventory.frmLichSuKho;
+import hdkmanagement.view.finance.frmThuChi;
+import hdkmanagement.view.finance.frmBaoCaoKQKD;
+import hdkmanagement.view.hr.frmTinhLuong;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Path2D;
 import java.awt.geom.RoundRectangle2D;
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,13 +46,10 @@ public class frmDashboard extends JFrame {
     private JPanel headerPanel;
     private JPanel contentPanel;
     private JPanel menuPanel;
-    private JLabel lblTitle;
-    private JLabel lblUserInfo;
-    private JButton btnLogout;
     private CardLayout cardLayout;
-    private JPanel panelDashboard;
 
     // ===== CÁC FORM =====
+    private frmTrangChu trangChuForm;
     private frmSanPham sanPhamForm;
     private frmDanhMuc danhMucForm;
     private frmKhachHang khachHangForm;
@@ -41,31 +57,36 @@ public class frmDashboard extends JFrame {
     private frmNhanVien nhanVienForm;
     private frmNhapHang nhapHangForm;
     private frmBanHang banHangForm;
-    private frmKhoHang khoHangForm;
     private frmBaoCao baoCaoForm;
+    private frmXemLog xemLogForm;
+    private frmKhuyenMai khuyenMaiForm;
+    private frmLichSuKho lichSuKhoForm;
+    private frmThuChi thuChiForm;
+    private frmBaoCaoKQKD baoCaoKQKDForm;
+    private frmTinhLuong tinhLuongForm;
+    private JScrollPane dashboardScrollPane;
 
     private final List<JButton> menuButtons = new ArrayList<>();
     private JButton selectedMenuButton;
 
-    // ===== BẢNG MÀU (đồng bộ với màn hình Đăng nhập) =====
-    // Xanh dương chủ đạo giống panel bên trái + nút "ĐĂNG NHẬP" của frmDangNhap
-    private final Color GRAD_START    = new Color(59, 130, 246);   // blue-500
-    private final Color GRAD_END      = new Color(29, 78, 216);    // blue-700
-    private final Color PRIMARY_BLUE  = new Color(37, 99, 235);    // blue-600 (màu nút chính)
-    private final Color PRIMARY_BLUE_DARK = new Color(29, 78, 216); // blue-700 (hover)
-    private final Color MENU_BG       = new Color(30, 41, 59);     // slate-800
-    private final Color MENU_HOVER    = new Color(51, 65, 85);     // slate-700
-    private final Color MENU_SELECTED = new Color(37, 99, 235);    // blue-600
-    private final Color MENU_TEXT     = new Color(148, 163, 184);  // slate-400
-    private final Color BG_COLOR      = new Color(248, 250, 252);  // slate-50 (giống nền trắng bên phải)
-    private final Color TEXT_DARK     = new Color(30, 41, 59);     // slate-800 (giống tiêu đề "Chào mừng trở lại!")
-    private final Color TEXT_MUTED    = new Color(100, 116, 139);  // slate-500 (giống mô tả phụ)
-    private final Color DANGER_COLOR  = new Color(239, 68, 68);    // red-500
-    private final Color DANGER_HOVER  = new Color(220, 38, 38);    // red-600
-    private final Color WHITE         = new Color(255, 255, 255);
+    // ===== MÀU SẮC =====
+    private final Color PRIMARY_DARK = UITheme.PRIMARY_DARKER;
+    private final Color PRIMARY_BLUE = new Color(30, 58, 138);
+    private final Color ACCENT_BLUE = UITheme.PRIMARY;
+    private final Color BG_GRAY = UITheme.BG;
+    private final Color CARD_WHITE = UITheme.CARD_BG;
+    private final Color BORDER_GRAY = UITheme.BORDER;
+    private final Color TEXT_DARK = UITheme.TEXT_MEDIUM;
+    private final Color TEXT_GRAY = UITheme.GRAY;
+    private final Color MENU_BG = UITheme.TEXT_MEDIUM;
+    private final Color MENU_HOVER = new Color(51, 65, 85);
+    private final Color MENU_SELECTED = UITheme.PRIMARY;
+    private final Color MENU_TEXT = new Color(148, 163, 184);
+    private final Color WHITE = UITheme.TEXT_WHITE;
 
     public frmDashboard() {
         // Khởi tạo các form
+        trangChuForm = new frmTrangChu();
         sanPhamForm = new frmSanPham();
         danhMucForm = new frmDanhMuc();
         khachHangForm = new frmKhachHang();
@@ -73,8 +94,13 @@ public class frmDashboard extends JFrame {
         nhanVienForm = new frmNhanVien();
         nhapHangForm = new frmNhapHang();
         banHangForm = new frmBanHang();
-        khoHangForm = new frmKhoHang();
         baoCaoForm = new frmBaoCao();
+        xemLogForm = new frmXemLog();
+        khuyenMaiForm = new frmKhuyenMai();
+        lichSuKhoForm = new frmLichSuKho();
+        thuChiForm = new frmThuChi();
+        baoCaoKQKDForm = new frmBaoCaoKQKD();
+        tinhLuongForm = new frmTinhLuong();
 
         initComponents();
         setLocationRelativeTo(null);
@@ -88,96 +114,85 @@ public class frmDashboard extends JFrame {
         setMinimumSize(new Dimension(1024, 600));
 
         mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(BG_COLOR);
+        mainPanel.setBackground(BG_GRAY);
 
         createHeader();
         createMenu();
         createContentPanels();
 
+        JScrollPane menuScroll = new JScrollPane(menuPanel);
+        menuScroll.setBorder(null);
+        menuScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        menuScroll.getVerticalScrollBar().setUnitIncrement(16);
+        menuScroll.setPreferredSize(new Dimension(240, 0));
+
         mainPanel.add(headerPanel, BorderLayout.NORTH);
-        mainPanel.add(menuPanel, BorderLayout.WEST);
+        mainPanel.add(menuScroll, BorderLayout.WEST);
         mainPanel.add(contentPanel, BorderLayout.CENTER);
 
         add(mainPanel);
     }
 
+    // ============================================================
+    // HEADER
+    // ============================================================
     private void createHeader() {
-        headerPanel = new JPanel(new BorderLayout()) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                GradientPaint gp = new GradientPaint(0, 0, GRAD_START, getWidth(), 0, GRAD_END);
-                g2d.setPaint(gp);
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-                g2d.dispose();
-            }
-        };
-        headerPanel.setPreferredSize(new Dimension(0, 68));
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 24));
+        headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(CARD_WHITE);
+        headerPanel.setPreferredSize(new Dimension(0, 60));
+        headerPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_GRAY));
 
-        // Left: Logo + Title
-        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 10));
+        // LEFT: Logo
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 15));
         leftPanel.setOpaque(false);
-
-        JLabel lblLogo = new JLabel("🏗️");
-        lblLogo.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 26));
-
-        lblTitle = new JLabel("Công Ty HDK");
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 19));
-        lblTitle.setForeground(WHITE);
-
+        JLabel lblLogo = new JLabel(new IconUtil(IconUtil.IconType.HOME, 24, ACCENT_BLUE));
+        JLabel lblCompany = new JLabel("HDK ERP");
+        lblCompany.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        lblCompany.setForeground(TEXT_DARK);
         leftPanel.add(lblLogo);
-        leftPanel.add(lblTitle);
+        leftPanel.add(lblCompany);
 
-        // Right: Avatar + User info + Logout
-        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 14, 10));
+        // RIGHT: User Info
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 10));
         rightPanel.setOpaque(false);
 
-        SessionManager session = SessionManager.getInstance();
-        String employeeName = session.getCurrentEmployeeName();
-        String roleName = session.getCurrentUser().getQuyen().getTenQuyen();
-
-        JLabel lblAvatar = new JLabel(initials(employeeName), SwingConstants.CENTER) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(new Color(255, 255, 255, 55));
-                g2d.fillOval(0, 0, getWidth(), getHeight());
-                g2d.dispose();
-                super.paintComponent(g);
-            }
-        };
-        lblAvatar.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblAvatar.setForeground(WHITE);
+        String employeeName = SessionManager.getInstance().getCurrentEmployeeName();
+        JLabel lblAvatar = new JLabel(initials(employeeName), SwingConstants.CENTER);
+        lblAvatar.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblAvatar.setForeground(CARD_WHITE);
         lblAvatar.setPreferredSize(new Dimension(36, 36));
-
-        JPanel userTextPanel = new JPanel();
-        userTextPanel.setOpaque(false);
-        userTextPanel.setLayout(new BoxLayout(userTextPanel, BoxLayout.Y_AXIS));
-
+        lblAvatar.setOpaque(true);
+        lblAvatar.setBackground(ACCENT_BLUE);
+        
+        JPanel userInfo = new JPanel();
+        userInfo.setLayout(new BoxLayout(userInfo, BoxLayout.Y_AXIS));
+        userInfo.setOpaque(false);
         JLabel lblName = new JLabel(employeeName);
         lblName.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblName.setForeground(WHITE);
-        lblName.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel lblRole = new JLabel(roleName);
+        lblName.setForeground(TEXT_DARK);
+        JLabel lblRole = new JLabel("Quản trị viên");
         lblRole.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        lblRole.setForeground(new Color(219, 234, 254)); // blue-100, đồng bộ tông xanh
-        lblRole.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        userTextPanel.add(lblName);
-        userTextPanel.add(lblRole);
-        lblUserInfo = lblName;
-
-        btnLogout = createFlatButton("ĐĂNG XUẤT", DANGER_COLOR, DANGER_HOVER, WHITE);
+        lblRole.setForeground(TEXT_GRAY);
+        userInfo.add(lblName);
+        userInfo.add(lblRole);
+        
+        JButton btnLogout = createFlatButton("ĐĂNG XUẤT", UITheme.DANGER, UITheme.TEXT_WHITE);
         btnLogout.addActionListener(e -> logout());
-
+        
+        JButton btnChatAI = createFlatButton(" HỎI AI", new Color(14, 165, 233), UITheme.TEXT_WHITE);
+        btnChatAI.setIcon(new hdkmanagement.util.IconUtil(hdkmanagement.util.IconUtil.IconType.ROBOT, 16, UITheme.TEXT_WHITE));
+        btnChatAI.addActionListener(e -> {
+            hdkmanagement.view.chatbot.frmChatbot chat = new hdkmanagement.view.chatbot.frmChatbot(frmDashboard.this);
+            chat.setVisible(true);
+        });
+        
         rightPanel.add(lblAvatar);
-        rightPanel.add(userTextPanel);
+        rightPanel.add(userInfo);
+        rightPanel.add(Box.createRigidArea(new Dimension(8, 0)));
+        rightPanel.add(btnChatAI);
+        rightPanel.add(Box.createRigidArea(new Dimension(8, 0)));
         rightPanel.add(btnLogout);
-
+        
         headerPanel.add(leftPanel, BorderLayout.WEST);
         headerPanel.add(rightPanel, BorderLayout.EAST);
     }
@@ -186,87 +201,69 @@ public class frmDashboard extends JFrame {
         if (fullName == null || fullName.isBlank()) return "?";
         String[] parts = fullName.trim().split("\\s+");
         String first = String.valueOf(parts[0].charAt(0));
-        String last = parts.length > 1 ? String.valueOf(parts[parts.length - 1].charAt(0)) : "";
-        return (first + last).toUpperCase();
+        return first.toUpperCase();
     }
 
-    private JButton createFlatButton(String text, Color bg, Color hoverBg, Color fg) {
-        JButton button = new JButton(text) {
-            private Color currentBg = bg;
-
-            {
-                addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseEntered(MouseEvent e) {
-                        currentBg = hoverBg;
-                        repaint();
-                    }
-                    @Override
-                    public void mouseExited(MouseEvent e) {
-                        currentBg = bg;
-                        repaint();
-                    }
-                });
-            }
-
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(currentBg);
-                g2d.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 10, 10));
-                g2d.dispose();
-                super.paintComponent(g);
-            }
-        };
-        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
+    private JButton createFlatButton(String text, Color bg, Color fg) {
+        JButton button = new JButton(text);
+        button.setBackground(bg);
         button.setForeground(fg);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
         button.setFocusPainted(false);
-        button.setContentAreaFilled(false);
-        button.setBorder(BorderFactory.createEmptyBorder(9, 18, 9, 18));
+        button.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return button;
     }
 
+    // ============================================================
+    // MENU BÊN TRÁI
+    // ============================================================
     private void createMenu() {
         menuPanel = new JPanel();
         menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
         menuPanel.setBackground(MENU_BG);
-        menuPanel.setPreferredSize(new Dimension(240, 0));
         menuPanel.setBorder(BorderFactory.createEmptyBorder(18, 0, 10, 0));
 
-        String[][] menuItems = {
-            {"📊", "Tổng quan", "dashboard"},
-            {"📦", "Sản phẩm", "sanpham"},
-            {"📁", "Danh mục", "danhmuc"},
-            {"👤", "Khách hàng", "khachhang"},
-            {"🏢", "Nhà cung cấp", "nhacungcap"},
-            {"👨‍💼", "Nhân viên", "nhanvien"},
-            {"📥", "Nhập hàng", "nhaphang"},
-            {"💰", "Bán hàng", "banhang"},
-            {"📊", "Kho hàng", "khohang"},
-            {"📈", "Báo cáo", "baocao"}
-        };
+        JLabel lblMenuLogo = new JLabel("HỆ THỐNG", new IconUtil(IconUtil.IconType.DASHBOARD, 24, WHITE), SwingConstants.LEFT);
+        lblMenuLogo.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblMenuLogo.setForeground(WHITE);
+        lblMenuLogo.setBorder(BorderFactory.createEmptyBorder(0, 16, 20, 0));
+        lblMenuLogo.setAlignmentX(Component.LEFT_ALIGNMENT);
+        menuPanel.add(lblMenuLogo);
 
-        JLabel sectionLabel = new JLabel("  MENU CHÍNH");
-        sectionLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        sectionLabel.setForeground(new Color(100, 116, 139));
-        sectionLabel.setBorder(BorderFactory.createEmptyBorder(0, 16, 12, 0));
-        sectionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        menuPanel.add(sectionLabel);
+        List<Object[]> menuList = new ArrayList<>();
+        menuList.add(new Object[]{IconUtil.IconType.HOME, "Trang chủ", "home"});
+        menuList.add(new Object[]{IconUtil.IconType.DASHBOARD, "Tổng quan", "dashboard"});
+        menuList.add(new Object[]{IconUtil.IconType.PRODUCT, "Sản phẩm", "sanpham"});
+        menuList.add(new Object[]{IconUtil.IconType.CATEGORY, "Danh mục", "danhmuc"});
+        menuList.add(new Object[]{IconUtil.IconType.CUSTOMER, "Khách hàng", "khachhang"});
+        menuList.add(new Object[]{IconUtil.IconType.SUPPLIER, "Nhà cung cấp", "nhacungcap"});
+        menuList.add(new Object[]{IconUtil.IconType.EMPLOYEE, "Nhân viên", "nhanvien"});
+        menuList.add(new Object[]{IconUtil.IconType.IMPORT, "Nhập hàng", "nhaphang"});
+        menuList.add(new Object[]{IconUtil.IconType.SALE, "Bán hàng", "banhang"});
+        menuList.add(new Object[]{IconUtil.IconType.SALE, "Khuyến mãi", "khuyenmai"});
+        menuList.add(new Object[]{IconUtil.IconType.PRODUCT, "Lịch sử kho", "lichsukho"});
+        menuList.add(new Object[]{IconUtil.IconType.MONEY, "Thu / Chi", "thuchi"});
+        menuList.add(new Object[]{IconUtil.IconType.REPORT, "Kết quả KD", "kqkd"});
+        menuList.add(new Object[]{IconUtil.IconType.REPORT, "Báo cáo", "baocao"});
 
-        for (String[] item : menuItems) {
-            JButton btn = createMenuItem(item[0], item[1], item[2]);
+        if (SessionManager.getInstance().isAdmin()) {
+            menuList.add(new Object[]{IconUtil.IconType.EMPLOYEE, "Tính lương", "tinhluong"});
+            menuList.add(new Object[]{IconUtil.IconType.SYSTEM_LOG, "Nhật ký hệ thống", "systemlog"});
+        }
+
+        for (Object[] item : menuList) {
+            JButton btn = createMenuItem((IconUtil.IconType) item[0], (String) item[1], (String) item[2]);
             menuButtons.add(btn);
             menuPanel.add(btn);
-            menuPanel.add(Box.createRigidArea(new Dimension(0, 3)));
+            menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
         }
 
         menuPanel.add(Box.createVerticalGlue());
     }
 
-    private JButton createMenuItem(String icon, String text, String action) {
-        JButton btn = new JButton("  " + icon + "   " + text) {
+    private JButton createMenuItem(IconUtil.IconType iconType, String text, String action) {
+        JButton btn = new JButton("  " + text) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
@@ -288,11 +285,13 @@ public class frmDashboard extends JFrame {
                 super.paintComponent(g);
             }
         };
+        btn.putClientProperty("iconType", iconType);
+        btn.setIcon(new IconUtil(iconType, 20, MENU_TEXT));
         btn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         btn.setForeground(MENU_TEXT);
         btn.setOpaque(false);
         btn.setContentAreaFilled(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(11, 12, 11, 12));
+        btn.setBorder(BorderFactory.createEmptyBorder(11, 16, 11, 16));
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setMaximumSize(new Dimension(240, 46));
@@ -301,43 +300,46 @@ public class frmDashboard extends JFrame {
 
         btn.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseEntered(MouseEvent e) {
-                if (btn != selectedMenuButton) btn.setForeground(WHITE);
-            }
+            public void mouseEntered(MouseEvent e) { updateMenuState(); }
             @Override
-            public void mouseExited(MouseEvent e) {
-                if (btn != selectedMenuButton) btn.setForeground(MENU_TEXT);
-            }
+            public void mouseExited(MouseEvent e) { updateMenuState(); }
         });
 
         btn.addActionListener(e -> {
-            selectMenuItem(btn);
+            selectedMenuButton = btn;
+            updateMenuState();
             showPanel(action);
         });
 
         return btn;
     }
 
-    private void selectMenuItem(JButton btn) {
+    private void updateMenuState() {
         for (JButton b : menuButtons) {
-            b.setForeground(MENU_TEXT);
+            boolean selected = (b == selectedMenuButton);
+            boolean hovered = b.getModel().isRollover();
+            Color c = (selected || hovered) ? WHITE : MENU_TEXT;
+            b.setForeground(c);
+            IconUtil.IconType type = (IconUtil.IconType) b.getClientProperty("iconType");
+            b.setIcon(new IconUtil(type, 20, c));
         }
-        selectedMenuButton = btn;
-        btn.setForeground(WHITE);
         menuPanel.repaint();
     }
 
+    // ============================================================
+    // CONTENT PANELS
+    // ============================================================
     private void createContentPanels() {
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
-        contentPanel.setBackground(BG_COLOR);
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+        contentPanel.setBackground(BG_GRAY);
 
-        // Dashboard
-        panelDashboard = createDashboardPanel();
-        contentPanel.add(panelDashboard, "dashboard");
+        dashboardScrollPane = new JScrollPane(createDashboardPanel());
+        dashboardScrollPane.setBorder(null);
+        dashboardScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        contentPanel.add(trangChuForm.getPanel(), "home");
+        contentPanel.add(dashboardScrollPane, "dashboard");
 
-        // ===== CÁC MODULE THỰC TẾ =====
         contentPanel.add(sanPhamForm.getPanel(), "sanpham");
         contentPanel.add(danhMucForm.getPanel(), "danhmuc");
         contentPanel.add(khachHangForm.getPanel(), "khachhang");
@@ -345,215 +347,342 @@ public class frmDashboard extends JFrame {
         contentPanel.add(nhanVienForm.getPanel(), "nhanvien");
         contentPanel.add(nhapHangForm.getPanel(), "nhaphang");
         contentPanel.add(banHangForm.getPanel(), "banhang");
-        contentPanel.add(khoHangForm.getPanel(), "khohang");
+        contentPanel.add(khuyenMaiForm, "khuyenmai");
+        contentPanel.add(lichSuKhoForm, "lichsukho");
+        contentPanel.add(thuChiForm, "thuchi");
+        contentPanel.add(baoCaoKQKDForm, "kqkd");
+        contentPanel.add(tinhLuongForm, "tinhluong");
         contentPanel.add(baoCaoForm.getPanel(), "baocao");
+        contentPanel.add(xemLogForm.getPanel(), "systemlog");
     }
 
+    // ============================================================
+    // NEW DASHBOARD PANEL
+    // ============================================================
     private JPanel createDashboardPanel() {
-        JPanel panel = new JPanel(new BorderLayout(0, 24));
-        panel.setBackground(BG_COLOR);
+        JPanel panel = new JPanel(new BorderLayout(20, 20));
+        panel.setBackground(BG_GRAY);
+        panel.setBorder(new EmptyBorder(24, 24, 24, 24));
 
-        // ---- Tiêu đề chào mừng ----
-        JPanel welcomeBox = new JPanel(new BorderLayout());
-        welcomeBox.setBackground(BG_COLOR);
+        // Tiêu đề và nút Làm mới
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setBackground(BG_GRAY);
+        JLabel lblTitle = new JLabel("TỔNG QUAN HỆ THỐNG");
+        lblTitle.setFont(UITheme.FONT_TITLE);
+        lblTitle.setForeground(TEXT_DARK);
+        titlePanel.add(lblTitle, BorderLayout.WEST);
 
-        SessionManager session = SessionManager.getInstance();
-        JLabel lblWelcome = new JLabel("Chào mừng trở lại, " + session.getCurrentEmployeeName() + " 👋");
-        lblWelcome.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        lblWelcome.setForeground(TEXT_DARK);
+        JButton btnRefresh = createFlatButton(" Làm mới", UITheme.PRIMARY, UITheme.TEXT_WHITE);
+        btnRefresh.setPreferredSize(new Dimension(120, 36));
+        btnRefresh.addActionListener(e -> {
+            if (dashboardScrollPane != null) {
+                dashboardScrollPane.setViewportView(createDashboardPanel());
+            }
+        });
+        titlePanel.add(btnRefresh, BorderLayout.EAST);
 
-        JLabel lblSub = new JLabel("Tổng quan hệ thống quản lý kinh doanh vật liệu xây dựng");
-        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        lblSub.setForeground(TEXT_MUTED);
-        lblSub.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
+        panel.add(titlePanel, BorderLayout.NORTH);
 
-        JPanel textStack = new JPanel();
-        textStack.setLayout(new BoxLayout(textStack, BoxLayout.Y_AXIS));
-        textStack.setOpaque(false);
-        lblWelcome.setAlignmentX(Component.LEFT_ALIGNMENT);
-        lblSub.setAlignmentX(Component.LEFT_ALIGNMENT);
-        textStack.add(lblWelcome);
-        textStack.add(lblSub);
+        // Center Content
+        JPanel centerPanel = new JPanel(new BorderLayout(20, 20));
+        centerPanel.setOpaque(false);
 
-        welcomeBox.add(textStack, BorderLayout.WEST);
+        // 1. Thẻ thống kê
+        centerPanel.add(createQuickStatsPanel(), BorderLayout.NORTH);
 
-        // ---- Các thẻ thống kê nhanh ----
-        JPanel statsGrid = new JPanel(new GridLayout(1, 4, 18, 0));
-        statsGrid.setBackground(BG_COLOR);
-        statsGrid.add(createStatCard("📦", "Sản phẩm", getProductCount(), PRIMARY_BLUE));
-        statsGrid.add(createStatCard("💰", "Doanh thu", getRevenue(), new Color(16, 185, 129))); // emerald-500
-        statsGrid.add(createStatCard("📥", "Đơn nhập", getImportCount(), new Color(249, 115, 22))); // orange-500
-        statsGrid.add(createStatCard("👤", "Khách hàng", getCustomerCount(), new Color(14, 165, 233))); // sky-500
+        // 2. Biểu đồ và Bảng dữ liệu
+        JPanel dataPanel = new JPanel(new GridLayout(1, 2, 20, 0));
+        dataPanel.setOpaque(false);
+        dataPanel.add(createChartCard());
+        dataPanel.add(createRecentOrdersCard());
 
-        // ---- Khu vực nội dung chính ----
-        JPanel infoCard = createCardPanel();
-        infoCard.setLayout(new GridBagLayout());
-        JLabel lblInfo = new JLabel("📈  Chào mừng đến với hệ thống quản lý Công Ty HDK");
-        lblInfo.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        lblInfo.setForeground(TEXT_MUTED);
-        infoCard.add(lblInfo);
-
-        JPanel centerWrap = new JPanel(new BorderLayout(0, 18));
-        centerWrap.setBackground(BG_COLOR);
-        centerWrap.add(statsGrid, BorderLayout.NORTH);
-        centerWrap.add(infoCard, BorderLayout.CENTER);
-
-        panel.add(welcomeBox, BorderLayout.NORTH);
-        panel.add(centerWrap, BorderLayout.CENTER);
+        centerPanel.add(dataPanel, BorderLayout.CENTER);
+        panel.add(centerPanel, BorderLayout.CENTER);
 
         return panel;
     }
 
-    // ===== LẤY DỮ LIỆU THỐNG KÊ =====
-    private String getProductCount() {
-        try {
-            hdkmanagement.controller.SanPhamController ctrl = new hdkmanagement.controller.SanPhamController();
-            int count = ctrl.getAllSanPham().size();
-            return String.valueOf(count);
-        } catch (Exception e) {
-            return "--";
-        }
-    }
+    // ===== 1. QUICK STATS =====
+    private JPanel createQuickStatsPanel() {
+        JPanel statsPanel = new JPanel(new GridLayout(1, 4, 20, 0));
+        statsPanel.setOpaque(false);
 
-    private String getRevenue() {
-        try {
-            hdkmanagement.dao.HoaDonDAO dao = new hdkmanagement.dao.HoaDonDAO();
-            double revenue = dao.getTotalRevenue();
-            return String.format("%,.0f ₫", revenue);
-        } catch (Exception e) {
-            return "-- ₫";
-        }
-    }
+        // Lấy dữ liệu
+        double revenueToday = 0;
+        int ordersToday = 0;
+        int lowStock = 0;
+        double totalDebt = 0;
 
-    private String getImportCount() {
         try {
-            hdkmanagement.dao.PhieuNhapDAO dao = new hdkmanagement.dao.PhieuNhapDAO();
-            int count = dao.getAll().size();
-            return String.valueOf(count);
-        } catch (Exception e) {
-            return "--";
-        }
-    }
+            HoaDonDAO hDao = new HoaDonDAO();
+            Date today = new Date(System.currentTimeMillis());
+            revenueToday = hDao.getRevenueByDate(today);
 
-    private String getCustomerCount() {
-        try {
-            hdkmanagement.controller.KhachHangController ctrl = new hdkmanagement.controller.KhachHangController();
-            int count = ctrl.getAllKhachHang().size();
-            return String.valueOf(count);
-        } catch (Exception e) {
-            return "--";
-        }
-    }
-
-    private JPanel createCardPanel() {
-        JPanel card = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(WHITE);
-                g2d.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 16, 16));
-                g2d.dispose();
+            List<HoaDon> hList = hDao.getAll();
+            String todayStr = today.toString();
+            for (HoaDon h : hList) {
+                if (h.getNgayBan().toString().equals(todayStr)) {
+                    ordersToday++;
+                }
             }
-        };
-        card.setOpaque(false);
-        return card;
+
+            SanPhamController sCtrl = new SanPhamController();
+            for (SanPham s : sCtrl.getAllSanPham()) {
+                if (s.getTonKho() < 10) lowStock++;
+            }
+
+            KhachHangController kCtrl = new KhachHangController();
+            for (KhachHang k : kCtrl.getAllKhachHang()) {
+                totalDebt += k.getCongNo();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        statsPanel.add(createStatCard("Doanh thu hôm nay", ValidateUtil.formatCurrencyVND(revenueToday), IconUtil.IconType.MONEY, UITheme.WARNING));
+        statsPanel.add(createStatCard("Hóa đơn hôm nay", ordersToday + " đơn", IconUtil.IconType.SALE, UITheme.SUCCESS));
+        statsPanel.add(createStatCard("Tồn kho thấp", lowStock + " sản phẩm", IconUtil.IconType.WARNING, UITheme.DANGER));
+        statsPanel.add(createStatCard("Tổng công nợ", ValidateUtil.formatCurrencyVND(totalDebt), IconUtil.IconType.CUSTOMER, new Color(14, 165, 233)));
+
+        return statsPanel;
     }
 
-    private JPanel createStatCard(String icon, String label, String value, Color accent) {
-        JPanel card = createCardPanel();
-        card.setLayout(new BorderLayout());
-        card.setBorder(BorderFactory.createEmptyBorder(18, 20, 18, 20));
-        card.setPreferredSize(new Dimension(0, 100));
-
-        JLabel lblIcon = new JLabel(icon) {
+    private JPanel createStatCard(String title, String value, IconUtil.IconType iconType, Color iconBg) {
+        JPanel card = new JPanel(new BorderLayout(15, 0)) {
             @Override
             protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(new Color(accent.getRed(), accent.getGreen(), accent.getBlue(), 30));
-                g2d.fillOval(0, 0, getWidth(), getHeight());
-                g2d.dispose();
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(CARD_WHITE);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 16, 16));
+                g2.setColor(BORDER_GRAY);
+                g2.draw(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 16, 16));
+                g2.dispose();
                 super.paintComponent(g);
             }
         };
-        lblIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
-        lblIcon.setHorizontalAlignment(SwingConstants.CENTER);
-        lblIcon.setPreferredSize(new Dimension(40, 40));
+        card.setOpaque(false);
+        card.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        JPanel textPanel = new JPanel();
+        // Icon Box
+        JPanel iconBox = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(iconBg.getRed(), iconBg.getGreen(), iconBg.getBlue(), 30));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        iconBox.setOpaque(false);
+        iconBox.setPreferredSize(new Dimension(54, 54));
+        JLabel lblIcon = new JLabel(new IconUtil(iconType, 28, iconBg), SwingConstants.CENTER);
+        iconBox.add(lblIcon);
+
+        // Text
+        JPanel textPanel = new JPanel(new GridLayout(2, 1, 0, 2));
         textPanel.setOpaque(false);
-        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
-        textPanel.setBorder(BorderFactory.createEmptyBorder(0, 14, 0, 0));
-
+        JLabel lblTitle = new JLabel(title);
+        lblTitle.setFont(UITheme.FONT_SUB);
+        lblTitle.setForeground(TEXT_GRAY);
         JLabel lblValue = new JLabel(value);
-        lblValue.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        lblValue.setFont(new Font("Segoe UI", Font.BOLD, 18));
         lblValue.setForeground(TEXT_DARK);
-        lblValue.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel lblLabel = new JLabel(label);
-        lblLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblLabel.setForeground(TEXT_MUTED);
-        lblLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
+        textPanel.add(lblTitle);
         textPanel.add(lblValue);
-        textPanel.add(lblLabel);
 
-        JPanel topRow = new JPanel(new BorderLayout());
-        topRow.setOpaque(false);
-        topRow.add(lblIcon, BorderLayout.WEST);
-        topRow.add(textPanel, BorderLayout.CENTER);
+        card.add(iconBox, BorderLayout.WEST);
+        card.add(textPanel, BorderLayout.CENTER);
+        return card;
+    }
 
-        card.add(topRow, BorderLayout.CENTER);
+    // ===== 2. CHART CARD =====
+    private JPanel createChartCard() {
+        JPanel card = new JPanel(new BorderLayout());
+        card.setOpaque(false);
+
+        JLabel lblTitle = new JLabel("BIỂU ĐỒ DOANH THU (7 NGÀY)");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblTitle.setForeground(TEXT_DARK);
+        lblTitle.setBorder(new EmptyBorder(0, 0, 15, 0));
+
+        JPanel chartWrapper = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(CARD_WHITE);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 16, 16));
+                g2.setColor(BORDER_GRAY);
+                g2.draw(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 16, 16));
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        chartWrapper.setOpaque(false);
+        chartWrapper.setBorder(new EmptyBorder(20, 20, 20, 20));
+
+        // Custom vẽ biểu đồ thu nhỏ
+        JPanel chartView = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int w = getWidth();
+                int h = getHeight();
+
+                // Lưới ngang
+                g2.setColor(new Color(240, 240, 240));
+                for (int i = 1; i <= 4; i++) {
+                    int y = h - (i * h / 5);
+                    g2.drawLine(0, y, w, y);
+                }
+
+                // Vẽ Line ảo mượt mà (Mockup Line Chart)
+                g2.setColor(UITheme.PRIMARY);
+                g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                
+                int[] data = {10, 40, 30, 80, 50, 90, 70};
+                int points = data.length;
+                int stepX = w / (points - 1);
+                
+                Path2D line = new Path2D.Float();
+                line.moveTo(0, h - (data[0] * h / 100));
+                for(int i = 1; i < points; i++) {
+                    line.lineTo(i * stepX, h - (data[i] * h / 100));
+                }
+                g2.draw(line);
+
+                // Các điểm node
+                g2.setColor(WHITE);
+                for(int i = 0; i < points; i++) {
+                    int px = i * stepX;
+                    int py = h - (data[i] * h / 100);
+                    g2.fillOval(px - 4, py - 4, 8, 8);
+                    g2.setColor(UITheme.PRIMARY);
+                    g2.drawOval(px - 4, py - 4, 8, 8);
+                    g2.setColor(WHITE);
+                }
+
+                g2.dispose();
+            }
+        };
+        chartView.setOpaque(false);
+
+        chartWrapper.add(chartView, BorderLayout.CENTER);
+        card.add(lblTitle, BorderLayout.NORTH);
+        card.add(chartWrapper, BorderLayout.CENTER);
+
+        return card;
+    }
+
+    // ===== 3. RECENT ORDERS TABLE =====
+    private JPanel createRecentOrdersCard() {
+        JPanel card = new JPanel(new BorderLayout());
+        card.setOpaque(false);
+
+        JLabel lblTitle = new JLabel("GIAO DỊCH GẦN ĐÂY");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblTitle.setForeground(TEXT_DARK);
+        lblTitle.setBorder(new EmptyBorder(0, 0, 15, 0));
+
+        JPanel tableWrapper = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(CARD_WHITE);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 16, 16));
+                g2.setColor(BORDER_GRAY);
+                g2.draw(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 16, 16));
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        tableWrapper.setOpaque(false);
+        tableWrapper.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        String[] cols = {"Mã HD", "Ngày", "Tổng Tiền"};
+        DefaultTableModel model = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+
+        try {
+            HoaDonDAO hDao = new HoaDonDAO();
+            List<HoaDon> list = hDao.getAll();
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            int limit = Math.min(5, list.size());
+            for (int i = 0; i < limit; i++) {
+                HoaDon h = list.get(i);
+                model.addRow(new Object[]{
+                    h.getMaHD_Code(),
+                    sdf.format(h.getNgayBan()),
+                    ValidateUtil.formatCurrencyVND(h.getTongTien())
+                });
+            }
+        } catch (Exception e) {}
+
+        JTable table = new JTable(model);
+        table.setRowHeight(32);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        table.setShowGrid(true);
+        table.setGridColor(UITheme.TABLE_STRIPE);
+        table.setSelectionBackground(UITheme.PRIMARY_LIGHT);
+        table.setSelectionForeground(UITheme.TEXT_DARK);
+
+        JTableHeader th = table.getTableHeader();
+        th.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        th.setBackground(UITheme.CARD_BG);
+        th.setForeground(UITheme.TEXT_MEDIUM);
+        th.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_GRAY));
+
+        JScrollPane sp = new JScrollPane(table);
+        sp.setBorder(BorderFactory.createEmptyBorder());
+        sp.getViewport().setBackground(CARD_WHITE);
+
+        tableWrapper.add(sp, BorderLayout.CENTER);
+        card.add(lblTitle, BorderLayout.NORTH);
+        card.add(tableWrapper, BorderLayout.CENTER);
+
         return card;
     }
 
     private void showPanel(String name) {
         cardLayout.show(contentPanel, name);
-        
-        // Reload dữ liệu khi chuyển panel
         switch (name) {
-            case "dashboard":
-                break;
-            case "sanpham":
-                sanPhamForm.loadData();
-                break;
-            case "danhmuc":
-                danhMucForm.loadData();
-                break;
-            case "khachhang":
-                khachHangForm.loadData();
-                break;
-            case "nhacungcap":
-                nhaCungCapForm.loadData();
-                break;
-            case "nhanvien":
-                nhanVienForm.loadData();
-                break;
-            case "nhaphang":
-                break;
-            case "banhang":
-                break;
-            case "khohang":
-                break;
-            case "baocao":
-                break;
+            case "home": break;
+            case "dashboard": break;
+            case "sanpham": sanPhamForm.loadData(); break;
+            case "danhmuc": danhMucForm.loadData(); break;
+            case "khachhang": khachHangForm.loadData(); break;
+            case "nhacungcap": nhaCungCapForm.loadData(); break;
+            case "nhanvien": nhanVienForm.loadData(); break;
+            case "nhaphang": nhapHangForm.loadData(); break;
+            case "banhang":   banHangForm.loadData(); break;
+            case "khuyenmai": break;
+            case "lichsukho": break;
+            case "thuchi":    break;
+            case "kqkd":      break;
+            case "tinhluong": break;
+            case "baocao":    baoCaoForm.loadData(); break;
+            case "systemlog": xemLogForm.loadData(); break;
         }
     }
 
     private void showDashboard() {
         if (!menuButtons.isEmpty()) {
-            selectMenuItem(menuButtons.get(0));
+            selectedMenuButton = menuButtons.get(0);
+            updateMenuState();
         }
-        showPanel("dashboard");
+        showPanel("home");
     }
 
     private void logout() {
-        int confirm = JOptionPane.showConfirmDialog(this,
-            "Bạn có chắc muốn đăng xuất?",
-            "Xác nhận đăng xuất",
-            JOptionPane.YES_NO_OPTION);
-
+        int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn đăng xuất?", "Xác nhận", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             SessionManager.getInstance().logout();
             dispose();

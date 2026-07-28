@@ -9,6 +9,7 @@ import hdkmanagement.model.Quyen;
 import hdkmanagement.util.MessageUtil;
 import hdkmanagement.util.DateUtil;
 import hdkmanagement.util.ValidateUtil;
+import hdkmanagement.view.common.UITheme;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -63,11 +64,12 @@ public class frmNhanVien {
     private TaiKhoanController taiKhoanController;
     private int selectedId = -1;
     
-    private final Color SECONDARY_COLOR = new Color(41, 128, 185);
-    private final Color ACCENT_COLOR = new Color(46, 204, 113);
-    private final Color DANGER_COLOR = new Color(231, 76, 60);
-    private final Color WARNING_COLOR = new Color(241, 196, 15);
-    private final Color BG_COLOR = new Color(236, 240, 241);
+    // ===== MÀU SẮC - lấy từ UITheme dùng chung để đồng bộ toàn ứng dụng =====
+    private final Color SECONDARY_COLOR = UITheme.PRIMARY;
+    private final Color ACCENT_COLOR = UITheme.SUCCESS;
+    private final Color DANGER_COLOR = UITheme.DANGER;
+    private final Color WARNING_COLOR = UITheme.WARNING;
+    private final Color BG_COLOR = UITheme.BG;
     
     public frmNhanVien() {
         nhanVienController = new NhanVienController();
@@ -87,14 +89,14 @@ public class frmNhanVien {
         searchPanel.setBackground(Color.WHITE);
         searchPanel.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(new Color(200, 200, 200)),
-            "🔍 Tìm kiếm nhân viên",
+            "Tìm kiếm nhân viên",
             TitledBorder.LEFT,
             TitledBorder.TOP,
-            new Font("Segoe UI", Font.BOLD, 13)
+            UITheme.font(Font.BOLD, 13)
         ));
         
         txtSearch = new JTextField(30);
-        txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtSearch.setFont(UITheme.font(Font.PLAIN, 14));
         txtSearch.setPreferredSize(new Dimension(250, 35));
         
         btnSearch = createButton("Tìm kiếm", SECONDARY_COLOR);
@@ -110,10 +112,10 @@ public class frmNhanVien {
         tablePanel.setBackground(Color.WHITE);
         tablePanel.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(new Color(200, 200, 200)),
-            "📋 Danh sách nhân viên",
+            "Danh sách nhân viên",
             TitledBorder.LEFT,
             TitledBorder.TOP,
-            new Font("Segoe UI", Font.BOLD, 13)
+            UITheme.font(Font.BOLD, 13)
         ));
         
         String[] columns = {"Mã NV", "Họ tên", "Giới tính", "SĐT", "Email", "Chức vụ", "Lương", "Trạng thái"};
@@ -124,14 +126,7 @@ public class frmNhanVien {
             }
         };
         tblNhanVien = new JTable(tableModel);
-        tblNhanVien.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tblNhanVien.setRowHeight(30);
-        tblNhanVien.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
-        tblNhanVien.getTableHeader().setBackground(SECONDARY_COLOR);
-        tblNhanVien.getTableHeader().setForeground(Color.WHITE);
-        tblNhanVien.setSelectionBackground(new Color(41, 128, 185, 50));
-        tblNhanVien.setShowGrid(true);
-        tblNhanVien.setGridColor(new Color(230, 230, 230));
+        UITheme.styleTable(tblNhanVien);
         
         tblNhanVien.getColumnModel().getColumn(0).setPreferredWidth(80);
         tblNhanVien.getColumnModel().getColumn(1).setPreferredWidth(150);
@@ -151,10 +146,10 @@ public class frmNhanVien {
         formPanel.setBackground(Color.WHITE);
         formPanel.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(new Color(200, 200, 200)),
-            "📝 Thông tin nhân viên",
+            "Thông tin nhân viên",
             TitledBorder.LEFT,
             TitledBorder.TOP,
-            new Font("Segoe UI", Font.BOLD, 13)
+            UITheme.font(Font.BOLD, 13)
         ));
         formPanel.setPreferredSize(new Dimension(400, 0));
         
@@ -166,7 +161,7 @@ public class frmNhanVien {
         gbc.gridx = 0; gbc.gridy = 0;
         formPanel.add(new JLabel("Mã NV:"), gbc);
         txtMaNV = new JTextField(15);
-        txtMaNV.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtMaNV.setFont(UITheme.font(Font.PLAIN, 13));
         txtMaNV.setPreferredSize(new Dimension(200, 30));
         gbc.gridx = 1;
         formPanel.add(txtMaNV, gbc);
@@ -175,7 +170,7 @@ public class frmNhanVien {
         gbc.gridx = 0; gbc.gridy = 1;
         formPanel.add(new JLabel("Họ tên:"), gbc);
         txtHoTen = new JTextField(15);
-        txtHoTen.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtHoTen.setFont(UITheme.font(Font.PLAIN, 13));
         txtHoTen.setPreferredSize(new Dimension(200, 30));
         gbc.gridx = 1;
         formPanel.add(txtHoTen, gbc);
@@ -184,7 +179,7 @@ public class frmNhanVien {
         gbc.gridx = 0; gbc.gridy = 2;
         formPanel.add(new JLabel("Giới tính:"), gbc);
         cboGioiTinh = new JComboBox<>(new String[]{"Nam", "Nữ"});
-        cboGioiTinh.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        cboGioiTinh.setFont(UITheme.font(Font.PLAIN, 13));
         cboGioiTinh.setPreferredSize(new Dimension(200, 30));
         gbc.gridx = 1;
         formPanel.add(cboGioiTinh, gbc);
@@ -193,7 +188,7 @@ public class frmNhanVien {
         gbc.gridx = 0; gbc.gridy = 3;
         formPanel.add(new JLabel("Ngày sinh:"), gbc);
         txtNgaySinh = new JTextField(15);
-        txtNgaySinh.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtNgaySinh.setFont(UITheme.font(Font.PLAIN, 13));
         txtNgaySinh.setPreferredSize(new Dimension(200, 30));
         txtNgaySinh.setToolTipText("dd/MM/yyyy");
         gbc.gridx = 1;
@@ -203,7 +198,7 @@ public class frmNhanVien {
         gbc.gridx = 0; gbc.gridy = 4;
         formPanel.add(new JLabel("Địa chỉ:"), gbc);
         txtDiaChi = new JTextArea(2, 15);
-        txtDiaChi.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtDiaChi.setFont(UITheme.font(Font.PLAIN, 13));
         txtDiaChi.setLineWrap(true);
         txtDiaChi.setWrapStyleWord(true);
         JScrollPane diaChiScroll = new JScrollPane(txtDiaChi);
@@ -215,7 +210,7 @@ public class frmNhanVien {
         gbc.gridx = 0; gbc.gridy = 5;
         formPanel.add(new JLabel("SĐT:"), gbc);
         txtSDT = new JTextField(15);
-        txtSDT.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtSDT.setFont(UITheme.font(Font.PLAIN, 13));
         txtSDT.setPreferredSize(new Dimension(200, 30));
         gbc.gridx = 1;
         formPanel.add(txtSDT, gbc);
@@ -224,7 +219,7 @@ public class frmNhanVien {
         gbc.gridx = 0; gbc.gridy = 6;
         formPanel.add(new JLabel("Email:"), gbc);
         txtEmail = new JTextField(15);
-        txtEmail.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtEmail.setFont(UITheme.font(Font.PLAIN, 13));
         txtEmail.setPreferredSize(new Dimension(200, 30));
         gbc.gridx = 1;
         formPanel.add(txtEmail, gbc);
@@ -233,7 +228,7 @@ public class frmNhanVien {
         gbc.gridx = 0; gbc.gridy = 7;
         formPanel.add(new JLabel("Chức vụ:"), gbc);
         txtChucVu = new JTextField(15);
-        txtChucVu.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtChucVu.setFont(UITheme.font(Font.PLAIN, 13));
         txtChucVu.setPreferredSize(new Dimension(200, 30));
         gbc.gridx = 1;
         formPanel.add(txtChucVu, gbc);
@@ -242,7 +237,7 @@ public class frmNhanVien {
         gbc.gridx = 0; gbc.gridy = 8;
         formPanel.add(new JLabel("Lương cơ bản:"), gbc);
         txtLuongCoBan = new JTextField(15);
-        txtLuongCoBan.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtLuongCoBan.setFont(UITheme.font(Font.PLAIN, 13));
         txtLuongCoBan.setPreferredSize(new Dimension(200, 30));
         gbc.gridx = 1;
         formPanel.add(txtLuongCoBan, gbc);
@@ -251,7 +246,7 @@ public class frmNhanVien {
         gbc.gridx = 0; gbc.gridy = 9;
         formPanel.add(new JLabel("Ngày vào làm:"), gbc);
         txtNgayVaoLam = new JTextField(15);
-        txtNgayVaoLam.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtNgayVaoLam.setFont(UITheme.font(Font.PLAIN, 13));
         txtNgayVaoLam.setPreferredSize(new Dimension(200, 30));
         txtNgayVaoLam.setToolTipText("dd/MM/yyyy");
         gbc.gridx = 1;
@@ -261,7 +256,7 @@ public class frmNhanVien {
         gbc.gridx = 0; gbc.gridy = 10;
         formPanel.add(new JLabel("Ghi chú:"), gbc);
         txtGhiChu = new JTextArea(2, 15);
-        txtGhiChu.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtGhiChu.setFont(UITheme.font(Font.PLAIN, 13));
         txtGhiChu.setLineWrap(true);
         txtGhiChu.setWrapStyleWord(true);
         JScrollPane ghiChuScroll = new JScrollPane(txtGhiChu);
@@ -273,7 +268,7 @@ public class frmNhanVien {
         gbc.gridx = 0; gbc.gridy = 11;
         formPanel.add(new JLabel("Trạng thái:"), gbc);
         chkTrangThai = new JCheckBox("Hoạt động");
-        chkTrangThai.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        chkTrangThai.setFont(UITheme.font(Font.PLAIN, 13));
         chkTrangThai.setSelected(true);
         gbc.gridx = 1;
         formPanel.add(chkTrangThai, gbc);
@@ -298,13 +293,7 @@ public class frmNhanVien {
         formPanel.add(buttonPanel, gbc);
         
         // Row 13: Tạo tài khoản
-        btnCreateAccount = new JButton("➕ Tạo tài khoản");
-        btnCreateAccount.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnCreateAccount.setBackground(new Color(155, 89, 182));
-        btnCreateAccount.setForeground(Color.WHITE);
-        btnCreateAccount.setFocusPainted(false);
-        btnCreateAccount.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
-        btnCreateAccount.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnCreateAccount = UITheme.button(" Tạo tài khoản", new Color(155, 89, 182), new Color(125, 69, 152), Color.WHITE);
         btnCreateAccount.setEnabled(false);
         
         gbc.gridx = 0; gbc.gridy = 13;
@@ -327,22 +316,9 @@ public class frmNhanVien {
     }
     
     private JButton createButton(String text, Color bg) {
-        JButton btn = new JButton(text);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btn.setBackground(bg);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                btn.setBackground(bg.darker());
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                btn.setBackground(bg);
-            }
-        });
-        return btn;
+        // Dùng UITheme.button() thay vì setBackground() thường,
+        // vì Windows Look&Feel bỏ qua màu nền JButton mặc định (nút bị 'trắng/trong suốt').
+        return UITheme.button(text, bg, bg.darker(), Color.WHITE);
     }
     
     private void loadQuyen() {
@@ -501,7 +477,7 @@ public class frmNhanVien {
         gbc.gridx = 0; gbc.gridy = 0;
         panel.add(new JLabel("Tên đăng nhập:"), gbc);
         JTextField txtUsername = new JTextField(20);
-        txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtUsername.setFont(UITheme.font(Font.PLAIN, 13));
         txtUsername.setPreferredSize(new Dimension(200, 30));
         gbc.gridx = 1;
         panel.add(txtUsername, gbc);
@@ -510,7 +486,7 @@ public class frmNhanVien {
         gbc.gridx = 0; gbc.gridy = 1;
         panel.add(new JLabel("Mật khẩu:"), gbc);
         JPasswordField txtPassword = new JPasswordField(20);
-        txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtPassword.setFont(UITheme.font(Font.PLAIN, 13));
         txtPassword.setPreferredSize(new Dimension(200, 30));
         gbc.gridx = 1;
         panel.add(txtPassword, gbc);
@@ -519,7 +495,7 @@ public class frmNhanVien {
         gbc.gridx = 0; gbc.gridy = 2;
         panel.add(new JLabel("Xác nhận:"), gbc);
         JPasswordField txtConfirm = new JPasswordField(20);
-        txtConfirm.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtConfirm.setFont(UITheme.font(Font.PLAIN, 13));
         txtConfirm.setPreferredSize(new Dimension(200, 30));
         gbc.gridx = 1;
         panel.add(txtConfirm, gbc);
@@ -531,7 +507,7 @@ public class frmNhanVien {
         cboQuyen.addItem(new Quyen(1, "Admin", ""));
         cboQuyen.addItem(new Quyen(2, "Quản lý", ""));
         cboQuyen.addItem(new Quyen(3, "Nhân viên", ""));
-        cboQuyen.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        cboQuyen.setFont(UITheme.font(Font.PLAIN, 13));
         cboQuyen.setPreferredSize(new Dimension(200, 30));
         gbc.gridx = 1;
         panel.add(cboQuyen, gbc);

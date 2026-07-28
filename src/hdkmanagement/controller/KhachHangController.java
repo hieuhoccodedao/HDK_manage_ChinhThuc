@@ -48,7 +48,11 @@ public class KhachHangController extends BaseController {
                 return false;
             }
             
-            return khachHangDAO.insert(khachHang);
+            boolean success = khachHangDAO.insert(khachHang);
+            if (success) {
+                hdkmanagement.dao.SystemLogDAO.getInstance().logAction("Thêm khách hàng", "Thêm khách hàng: " + khachHang.getHoTen() + " (" + khachHang.getSdt() + ")");
+            }
+            return success;
         } catch (Exception e) {
             showError("Lỗi thêm khách hàng: " + e.getMessage());
             return false;
@@ -61,7 +65,11 @@ public class KhachHangController extends BaseController {
             if (!validateKhachHang(khachHang)) {
                 return false;
             }
-            return khachHangDAO.update(khachHang);
+            boolean success = khachHangDAO.update(khachHang);
+            if (success) {
+                hdkmanagement.dao.SystemLogDAO.getInstance().logAction("Cập nhật khách hàng", "Cập nhật khách hàng: " + khachHang.getHoTen() + " (" + khachHang.getSdt() + ")");
+            }
+            return success;
         } catch (Exception e) {
             showError("Lỗi cập nhật khách hàng: " + e.getMessage());
             return false;
@@ -74,7 +82,11 @@ public class KhachHangController extends BaseController {
             if (!showConfirm("Bạn có chắc muốn xóa khách hàng này?")) {
                 return false;
             }
-            return khachHangDAO.delete(id);
+            boolean success = khachHangDAO.delete(id);
+            if (success) {
+                hdkmanagement.dao.SystemLogDAO.getInstance().logAction("Xóa khách hàng", "Xóa khách hàng ID: " + id);
+            }
+            return success;
         } catch (Exception e) {
             showError("Lỗi xóa khách hàng: " + e.getMessage());
             return false;

@@ -24,15 +24,23 @@ public class SessionManager {
     public void login(TaiKhoan taiKhoan, NhanVien nhanVien) {
         this.currentUser = taiKhoan;
         this.currentEmployee = nhanVien;
-        System.out.println("🔓 Đăng nhập thành công: " + taiKhoan.getTenDangNhap());
-        System.out.println("👤 Vai trò: " + taiKhoan.getQuyen().getTenQuyen());
+        System.out.println(" Đăng nhập thành công: " + taiKhoan.getTenDangNhap());
+        System.out.println(" Vai trò: " + taiKhoan.getQuyen().getTenQuyen());
+        
+        // Ghi log hệ thống
+        hdkmanagement.dao.SystemLogDAO.getInstance().logAction("Đăng nhập", 
+                "Tài khoản " + taiKhoan.getTenDangNhap() + " đăng nhập hệ thống.");
     }
     
     // Đăng xuất
     public void logout() {
+        if (this.currentUser != null) {
+            hdkmanagement.dao.SystemLogDAO.getInstance().logAction("Đăng xuất", 
+                    "Tài khoản " + this.currentUser.getTenDangNhap() + " đăng xuất khỏi hệ thống.");
+        }
         this.currentUser = null;
         this.currentEmployee = null;
-        System.out.println("🔒 Đã đăng xuất");
+        System.out.println(" Đã đăng xuất");
     }
     
     // Kiểm tra đã đăng nhập chưa

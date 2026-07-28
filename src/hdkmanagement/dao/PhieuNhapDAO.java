@@ -36,6 +36,8 @@ public class PhieuNhapDAO implements IDAO<PhieuNhap> {
                 if (rs.next()) {
                     entity.setMaPN(rs.getInt(1));
                 }
+                String detail = "Nhập hàng mã " + entity.getMaPN_Code() + " với tổng tiền " + String.format("%,.0f", entity.getTongTien()) + " VND";
+                SystemLogDAO.getInstance().logAction("Nhập hàng", detail);
                 return true;
             }
             return false;
@@ -139,5 +141,17 @@ public class PhieuNhapDAO implements IDAO<PhieuNhap> {
         pn.setNguoiTao(rs.getInt("NguoiTao"));
         pn.setNgayTao(rs.getTimestamp("NgayTao"));
         return pn;
+    }
+
+    /** Lấy tổng giá trị hàng nhập trong khoảng thời gian */
+    public double getTongTienNhapByPeriod(String tuNgay, String denNgay) {
+        String sql = "SELECT IFNULL(SUM(TongTien), 0) as Total FROM PhieuNhap WHERE DATE(NgayNhap) BETWEEN ? AND ? AND TrangThai = 1";
+        try (PreparedStatement ps = db.getConnection().prepareStatement(sql)) {
+            ps.setString(1, tuNgay);
+            ps.setString(2, denNgay);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getDouble("Total");
+        } catch (SQLException e) { e.printStackTrace(); }
+        return 0;
     }
 }

@@ -46,7 +46,8 @@ public class KhachHangDAO implements IDAO<KhachHang> {
     @Override
     public boolean update(KhachHang entity) {
         String sql = "UPDATE KhachHang SET HoTen = ?, SDT = ?, Email = ?, " +
-                     "DiaChi = ?, GhiChu = ?, TrangThai = ? WHERE MaKH = ?";
+                     "DiaChi = ?, GhiChu = ?, TrangThai = ?, " +
+                     "DiemTichLuy = ?, TongChiTieu = ?, HangThe = ?, CongNo = ? WHERE MaKH = ?";
         try (PreparedStatement ps = db.getConnection().prepareStatement(sql)) {
             ps.setString(1, entity.getHoTen());
             ps.setString(2, entity.getSdt());
@@ -54,7 +55,11 @@ public class KhachHangDAO implements IDAO<KhachHang> {
             ps.setString(4, entity.getDiaChi());
             ps.setString(5, entity.getGhiChu());
             ps.setBoolean(6, entity.isTrangThai());
-            ps.setInt(7, entity.getMaKH());
+            ps.setInt(7, entity.getDiemTichLuy());
+            ps.setDouble(8, entity.getTongChiTieu());
+            ps.setString(9, entity.getHangThe());
+            ps.setDouble(10, entity.getCongNo());
+            ps.setInt(11, entity.getMaKH());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -137,6 +142,9 @@ public class KhachHangDAO implements IDAO<KhachHang> {
         kh.setGhiChu(rs.getString("GhiChu"));
         kh.setTrangThai(rs.getBoolean("TrangThai"));
         kh.setNgayTao(rs.getTimestamp("NgayTao"));
+        try { kh.setDiemTichLuy(rs.getInt("DiemTichLuy")); } catch (SQLException ignore) {}
+        try { kh.setTongChiTieu(rs.getDouble("TongChiTieu")); } catch (SQLException ignore) {}
+        try { kh.setHangThe(rs.getString("HangThe")); } catch (SQLException ignore) {}
         return kh;
     }
     

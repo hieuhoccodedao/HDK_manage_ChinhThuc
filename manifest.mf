@@ -1,2 +1,4 @@
-﻿Manifest-Version: 1.0
-X-COMMENT: Main-Class will be added automatically by build
+Manifest-Version: 1.0 
+Main-Class: hdkmanagement.HDKManagement 
+Class-Path: mysql-connector-j-8.0.33.jar flatlaf-3.5.1.jar emoji-java-5.1.1.jar itextpdf-5.5.13.3.jar 
+ 

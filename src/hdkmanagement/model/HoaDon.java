@@ -18,6 +18,7 @@ public class HoaDon {
     private boolean trangThai;
     private int nhanVienBan;
     private Timestamp ngayTao;
+    private int maKM;
     
     // Constructors, getters, setters
     public HoaDon() {
@@ -26,6 +27,8 @@ public class HoaDon {
     
     public int getMaHD() { return maHD; }
     public void setMaHD(int maHD) { this.maHD = maHD; }
+    public int getMaKM() { return maKM; }
+    public void setMaKM(int maKM) { this.maKM = maKM; }
     public String getMaHD_Code() { return maHD_Code; }
     public void setMaHD_Code(String maHD_Code) { this.maHD_Code = maHD_Code; }
     public int getMaKH() { return maKH; }

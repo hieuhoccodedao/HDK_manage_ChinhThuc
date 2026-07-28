@@ -14,10 +14,17 @@ public class KhachHang {
     private String ghiChu;
     private boolean trangThai;
     private Timestamp ngayTao;
+    // CRM fields
+    private int diemTichLuy;
+    private double tongChiTieu;
+    private String hangThe;   // "Đồng" | "Bạc" | "Vàng" | "Kim Cương"
 
     public KhachHang() {
         this.trangThai = true;
         this.congNo = 0;
+        this.diemTichLuy = 0;
+        this.tongChiTieu = 0;
+        this.hangThe = "Đồng";
     }
 
     // Getters và Setters
@@ -41,6 +48,30 @@ public class KhachHang {
     public void setTrangThai(boolean trangThai) { this.trangThai = trangThai; }
     public Timestamp getNgayTao() { return ngayTao; }
     public void setNgayTao(Timestamp ngayTao) { this.ngayTao = ngayTao; }
+    public int getDiemTichLuy() { return diemTichLuy; }
+    public void setDiemTichLuy(int v) { this.diemTichLuy = v; }
+    public double getTongChiTieu() { return tongChiTieu; }
+    public void setTongChiTieu(double v) { this.tongChiTieu = v; }
+    public String getHangThe() { return hangThe; }
+    public void setHangThe(String v) { this.hangThe = v; }
+
+    /** Tính và cập nhật hạng thẻ tự động dựa theo TongChiTieu */
+    public void capNhatHangThe() {
+        if (tongChiTieu >= 100_000_000) hangThe = "Kim Cương";
+        else if (tongChiTieu >= 50_000_000) hangThe = "Vàng";
+        else if (tongChiTieu >= 20_000_000) hangThe = "Bạc";
+        else hangThe = "Đồng";
+    }
+
+    /** Chiết khấu % theo hạng thẻ */
+    public double getChietKhauHangThe() {
+        switch (hangThe == null ? "Đồng" : hangThe) {
+            case "Kim Cương": return 10.0;
+            case "Vàng":       return 5.0;
+            case "Bạc":       return 2.0;
+            default:            return 0.0;
+        }
+    }
 
     @Override
     public String toString() {

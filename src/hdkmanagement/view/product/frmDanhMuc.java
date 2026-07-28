@@ -4,6 +4,7 @@ package hdkmanagement.view.product;
 import hdkmanagement.controller.DanhMucController;
 import hdkmanagement.model.DanhMuc;
 import hdkmanagement.util.MessageUtil;
+import hdkmanagement.view.common.UITheme;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -33,16 +34,18 @@ public class frmDanhMuc {
     private JButton btnDelete;
     private JButton btnClear;
     private JButton btnRefresh;
+    private JTextField txtSearch;
+    private JButton btnSearch;
     
     private DanhMucController danhMucController;
     private int selectedId = -1;
     
-    private final Color PRIMARY_COLOR = new Color(52, 73, 94);
-    private final Color SECONDARY_COLOR = new Color(41, 128, 185);
-    private final Color ACCENT_COLOR = new Color(46, 204, 113);
-    private final Color DANGER_COLOR = new Color(231, 76, 60);
-    private final Color WARNING_COLOR = new Color(241, 196, 15);
-    private final Color BG_COLOR = new Color(236, 240, 241);
+    private final Color PRIMARY_COLOR = UITheme.PRIMARY_DARKER;
+    private final Color SECONDARY_COLOR = UITheme.PRIMARY;
+    private final Color ACCENT_COLOR = UITheme.SUCCESS;
+    private final Color DANGER_COLOR = UITheme.DANGER;
+    private final Color WARNING_COLOR = UITheme.WARNING;
+    private final Color BG_COLOR = UITheme.BG;
     
     public frmDanhMuc() {
         danhMucController = new DanhMucController();
@@ -60,33 +63,23 @@ public class frmDanhMuc {
         tablePanel.setBackground(Color.WHITE);
         tablePanel.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(new Color(200, 200, 200)),
-            "📋 Danh sách danh mục",
+            "Danh sách danh mục",
             TitledBorder.LEFT,
             TitledBorder.TOP,
-            new Font("Segoe UI", Font.BOLD, 13)
+            UITheme.font(Font.BOLD, 13)
         ));
         
         // Search Panel
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         searchPanel.setBackground(Color.WHITE);
         
-        JTextField txtSearch = new JTextField(20);
-        txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtSearch = new JTextField(20);
+        txtSearch.setFont(UITheme.font(Font.PLAIN, 13));
         txtSearch.setPreferredSize(new Dimension(200, 30));
         
-        JButton btnSearch = new JButton("Tìm kiếm");
-        btnSearch.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnSearch.setBackground(SECONDARY_COLOR);
-        btnSearch.setForeground(Color.WHITE);
-        btnSearch.setFocusPainted(false);
-        btnSearch.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        btnRefresh = new JButton("Làm mới");
-        btnRefresh.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnRefresh.setBackground(new Color(149, 165, 166));
-        btnRefresh.setForeground(Color.WHITE);
-        btnRefresh.setFocusPainted(false);
-        btnRefresh.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnSearch = UITheme.button("Tìm kiếm", SECONDARY_COLOR, SECONDARY_COLOR.darker(), Color.WHITE);
+
+        btnRefresh = UITheme.button("Làm mới", UITheme.GRAY, UITheme.GRAY_HOVER, Color.WHITE);
         
         searchPanel.add(new JLabel("Từ khóa:"));
         searchPanel.add(txtSearch);
@@ -102,12 +95,7 @@ public class frmDanhMuc {
             }
         };
         tblDanhMuc = new JTable(tableModel);
-        tblDanhMuc.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tblDanhMuc.setRowHeight(30);
-        tblDanhMuc.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
-        tblDanhMuc.getTableHeader().setBackground(SECONDARY_COLOR);
-        tblDanhMuc.getTableHeader().setForeground(Color.WHITE);
-        tblDanhMuc.setSelectionBackground(new Color(41, 128, 185, 50));
+        UITheme.styleTable(tblDanhMuc);
         
         tblDanhMuc.getColumnModel().getColumn(0).setPreferredWidth(80);
         tblDanhMuc.getColumnModel().getColumn(1).setPreferredWidth(150);
@@ -125,10 +113,10 @@ public class frmDanhMuc {
         formPanel.setBackground(Color.WHITE);
         formPanel.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(new Color(200, 200, 200)),
-            "📝 Thông tin danh mục",
+            "Thông tin danh mục",
             TitledBorder.LEFT,
             TitledBorder.TOP,
-            new Font("Segoe UI", Font.BOLD, 13)
+            UITheme.font(Font.BOLD, 13)
         ));
         formPanel.setPreferredSize(new Dimension(350, 0));
         
@@ -139,7 +127,7 @@ public class frmDanhMuc {
         gbc.gridx = 0; gbc.gridy = 0;
         formPanel.add(new JLabel("Mã danh mục:"), gbc);
         txtMaDM = new JTextField(15);
-        txtMaDM.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtMaDM.setFont(UITheme.font(Font.PLAIN, 13));
         txtMaDM.setPreferredSize(new Dimension(200, 30));
         gbc.gridx = 1;
         formPanel.add(txtMaDM, gbc);
@@ -147,7 +135,7 @@ public class frmDanhMuc {
         gbc.gridx = 0; gbc.gridy = 1;
         formPanel.add(new JLabel("Tên danh mục:"), gbc);
         txtTenDM = new JTextField(15);
-        txtTenDM.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtTenDM.setFont(UITheme.font(Font.PLAIN, 13));
         txtTenDM.setPreferredSize(new Dimension(200, 30));
         gbc.gridx = 1;
         formPanel.add(txtTenDM, gbc);
@@ -155,7 +143,7 @@ public class frmDanhMuc {
         gbc.gridx = 0; gbc.gridy = 2;
         formPanel.add(new JLabel("Mô tả:"), gbc);
         txtMoTa = new JTextArea(3, 15);
-        txtMoTa.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtMoTa.setFont(UITheme.font(Font.PLAIN, 13));
         txtMoTa.setLineWrap(true);
         txtMoTa.setWrapStyleWord(true);
         JScrollPane moTaScroll = new JScrollPane(txtMoTa);
@@ -166,7 +154,7 @@ public class frmDanhMuc {
         gbc.gridx = 0; gbc.gridy = 3;
         formPanel.add(new JLabel("Trạng thái:"), gbc);
         chkTrangThai = new JCheckBox("Hoạt động");
-        chkTrangThai.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        chkTrangThai.setFont(UITheme.font(Font.PLAIN, 13));
         chkTrangThai.setSelected(true);
         gbc.gridx = 1;
         formPanel.add(chkTrangThai, gbc);
@@ -206,14 +194,9 @@ public class frmDanhMuc {
     }
     
     private JButton createButton(String text, Color bg) {
-        JButton btn = new JButton(text);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btn.setBackground(bg);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return btn;
+        // Dùng UITheme.button() thay vì setBackground() thường,
+        // vì Windows Look&Feel bỏ qua màu nền JButton mặc định (nút bị 'trắng/trong suốt').
+        return UITheme.button(text, bg, bg.darker(), Color.WHITE);
     }
     
     private void addEvents() {
@@ -231,7 +214,18 @@ public class frmDanhMuc {
         btnUpdate.addActionListener(e -> updateDanhMuc());
         btnDelete.addActionListener(e -> deleteDanhMuc());
         btnClear.addActionListener(e -> clearForm());
-        btnRefresh.addActionListener(e -> loadData());
+        btnRefresh.addActionListener(e -> {
+            txtSearch.setText("");
+            loadData();
+        });
+        btnSearch.addActionListener(e -> searchDanhMuc());
+        txtSearch.addActionListener(e -> searchDanhMuc());
+    }
+    
+    private void searchDanhMuc() {
+        String keyword = txtSearch.getText().trim();
+        List<DanhMuc> list = danhMucController.searchDanhMuc(keyword);
+        displayData(list);
     }
     
     public void loadData() {

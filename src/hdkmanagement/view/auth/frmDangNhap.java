@@ -5,6 +5,7 @@ import hdkmanagement.dao.TaiKhoanDAO;
 import hdkmanagement.model.TaiKhoan;
 import hdkmanagement.util.SessionManager;
 import hdkmanagement.view.dashboard.frmDashboard;
+import hdkmanagement.view.common.UITheme;
 
 import javax.swing.*;
 import javax.swing.border.AbstractBorder;
@@ -22,28 +23,34 @@ public class frmDangNhap extends JFrame {
     private JLabel lblStatus;
     private TaiKhoanDAO taiKhoanDAO;
 
-    // ===== BẢNG MÀU BLUE GRADIENT =====
-    private final Color GRAD_START   = new Color(25, 118, 210);
-    private final Color GRAD_END     = new Color(13, 71, 161);
-    private final Color ACCENT_COLOR = new Color(25, 118, 210);
-    private final Color ACCENT_HOVER = new Color(21, 101, 192);
-    private final Color DANGER_COLOR = new Color(244, 67, 54);
-    private final Color WHITE        = new Color(255, 255, 255);
-    private final Color TEXT_MUTED   = new Color(158, 158, 158);
-    private final Color TEXT_DARK    = new Color(55, 55, 55);
-    private final Color FIELD_BG     = new Color(245, 245, 245);
-    private final Color FIELD_BORDER = new Color(224, 224, 224);
-    private final Color FIELD_FOCUS  = new Color(25, 118, 210);
+    // ===== ANIMATION VARIABLES =====
+    private float floatY = 0;
+    private float floatAngle = 0;
+    private String currentTime = "";
+    private String currentDate = "";
+    private Timer animationTimer;
 
-    private final String ICON_BUILDING = "🏗️";
+    // ===== MÀU SẮC - lấy từ UITheme dùng chung để đồng bộ với toàn ứng dụng =====
+    private final Color GRAD_START   = UITheme.PRIMARY;
+    private final Color GRAD_END     = UITheme.PRIMARY_DARKER;
+    private final Color ACCENT_COLOR = UITheme.PRIMARY;
+    private final Color ACCENT_HOVER = UITheme.PRIMARY_DARK;
+    private final Color DANGER_COLOR = UITheme.DANGER;
+    private final Color WHITE        = UITheme.TEXT_WHITE;
+    private final Color TEXT_MUTED   = UITheme.TEXT_MUTED;
+    private final Color TEXT_DARK    = UITheme.TEXT_MEDIUM;
+    private final Color FIELD_BG     = new Color(245, 245, 245);
+    private final Color FIELD_BORDER = UITheme.BORDER_STRONG;
+    private final Color FIELD_FOCUS  = UITheme.PRIMARY;
 
     // ===== KÍCH THƯỚC CỐ ĐỊNH CHO Ô NHẬP =====
-    private final Dimension FIELD_SIZE = new Dimension(Integer.MAX_VALUE, 46);
+    private final Dimension FIELD_SIZE = new Dimension(350, 46);
 
     public frmDangNhap() {
         initComponents();
         taiKhoanDAO = new TaiKhoanDAO();
         setLocationRelativeTo(null);
+        startAnimation();
     }
 
     private void initComponents() {
@@ -69,7 +76,7 @@ public class frmDangNhap extends JFrame {
         mainPanel.setOpaque(false);
 
         // ===== LEFT PANEL - BLUE GRADIENT =====
-        JPanel leftPanel = new JPanel(new GridBagLayout()) {
+        JPanel leftPanel = new JPanel(null) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
@@ -84,6 +91,53 @@ public class frmDangNhap extends JFrame {
                 g2d.fillOval(-50, 50, 200, 200);
                 g2d.fillOval(getWidth() - 150, getHeight() - 150, 180, 180);
                 g2d.fillOval(100, getHeight() - 100, 120, 120);
+
+                // 1. Vẽ đồng hồ và ngày tháng
+                g2d.setColor(new Color(255, 255, 255, 220));
+                g2d.setFont(new Font("Segoe UI", Font.BOLD, 54));
+                FontMetrics fmTime = g2d.getFontMetrics();
+                int timeW = fmTime.stringWidth(currentTime);
+                g2d.drawString(currentTime, (getWidth() - timeW) / 2, 120);
+
+                g2d.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+                FontMetrics fmDate = g2d.getFontMetrics();
+                int dateW = fmDate.stringWidth(currentDate);
+                g2d.drawString(currentDate, (getWidth() - dateW) / 2, 150);
+
+                // 2. Vẽ Logo động ở trung tâm
+                int centerX = getWidth() / 2;
+                int centerY = getHeight() / 2 + (int) floatY - 20;
+
+                // Bóng đổ
+                g2d.setColor(new Color(0, 0, 0, 40));
+                int shadowWidth = 100 - (int) (floatY * 1.5);
+                g2d.fillOval(centerX - shadowWidth / 2, centerY + 80, shadowWidth, 15);
+
+                // Xoay logo (tách riêng Graphics2D để không ảnh hưởng đến chữ bên dưới)
+                Graphics2D g2dLogo = (Graphics2D) g2d.create();
+                g2dLogo.translate(centerX, centerY);
+                g2dLogo.rotate(Math.toRadians(floatAngle * 10));
+
+                // Logo Circle
+                g2dLogo.setColor(new Color(255, 255, 255, 200));
+                g2dLogo.fillOval(-50, -50, 100, 100);
+                hdkmanagement.util.IconUtil logoIcon = new hdkmanagement.util.IconUtil(hdkmanagement.util.IconUtil.IconType.LOGO_HDK, 56, UITheme.PRIMARY_DARKER);
+                logoIcon.paintIcon(this, g2dLogo, -28, -28);
+
+                g2dLogo.dispose(); // Hủy Graphics2D tạm thời
+
+                // 3. Tiêu đề (dùng g2d gốc để đảm bảo không bị giật tọa độ)
+                String title = "HDK MANAGEMENT";
+                g2d.setFont(UITheme.font(Font.BOLD, 28));
+                g2d.setColor(Color.WHITE);
+                FontMetrics fmTitle = g2d.getFontMetrics();
+                g2d.drawString(title, (getWidth() - fmTitle.stringWidth(title)) / 2, getHeight() - 110);
+                
+                String subtitle = "Công ty TNHH Xây dựng & Vật liệu HDK";
+                g2d.setFont(UITheme.font(Font.PLAIN, 14));
+                g2d.setColor(new Color(255, 255, 255, 200));
+                FontMetrics fmSub = g2d.getFontMetrics();
+                g2d.drawString(subtitle, (getWidth() - fmSub.stringWidth(subtitle)) / 2, getHeight() - 80);
                 
                 g2d.dispose();
                 super.paintComponent(g);
@@ -91,45 +145,6 @@ public class frmDangNhap extends JFrame {
         };
         leftPanel.setOpaque(false);
         leftPanel.setPreferredSize(new Dimension(450, 600));
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.anchor = GridBagConstraints.CENTER;
-        
-        // Logo
-        JPanel logoCircle = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(new Color(255, 255, 255, 200));
-                g2d.fillOval(0, 0, getWidth(), getHeight());
-                g2d.dispose();
-                super.paintComponent(g);
-            }
-        };
-        logoCircle.setOpaque(false);
-        logoCircle.setPreferredSize(new Dimension(100, 100));
-        logoCircle.setLayout(new GridBagLayout());
-        
-        JLabel lblLogo = new JLabel(ICON_BUILDING);
-        lblLogo.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 48));
-        logoCircle.add(lblLogo);
-        
-        leftPanel.add(logoCircle, gbc);
-        leftPanel.add(Box.createRigidArea(new Dimension(0, 30)), gbc);
-        
-        JLabel lblTitle = new JLabel("HDK MANAGEMENT");
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        lblTitle.setForeground(Color.WHITE);
-        leftPanel.add(lblTitle, gbc);
-        
-        JLabel lblSubTitle = new JLabel("Công ty TNHH Xây dựng & Vật liệu HDK");
-        lblSubTitle.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        lblSubTitle.setForeground(new Color(255, 255, 255, 200));
-        leftPanel.add(lblSubTitle, gbc);
-        
-        leftPanel.add(Box.createRigidArea(new Dimension(0, 60)), gbc);
 
         // ===== RIGHT PANEL - FORM ĐĂNG NHẬP =====
         JPanel rightPanel = new JPanel();
@@ -139,12 +154,12 @@ public class frmDangNhap extends JFrame {
 
         // Header
         JLabel lblWelcome = new JLabel("Chào mừng trở lại!");
-        lblWelcome.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        lblWelcome.setFont(UITheme.font(Font.BOLD, 24));
         lblWelcome.setForeground(TEXT_DARK);
         lblWelcome.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel lblWelcomeSub = new JLabel("Đăng nhập để tiếp tục quản lý dự án của bạn");
-        lblWelcomeSub.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblWelcomeSub.setFont(UITheme.font(Font.PLAIN, 13));
         lblWelcomeSub.setForeground(TEXT_MUTED);
         lblWelcomeSub.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -155,7 +170,7 @@ public class frmDangNhap extends JFrame {
 
         // ----- Username -----
         JLabel lblUsername = new JLabel("TÊN ĐĂNG NHẬP");
-        lblUsername.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblUsername.setFont(UITheme.font(Font.BOLD, 11));
         lblUsername.setForeground(TEXT_MUTED);
         lblUsername.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -170,24 +185,44 @@ public class frmDangNhap extends JFrame {
 
         // ----- Password -----
         JLabel lblPassword = new JLabel("MẬT KHẨU");
-        lblPassword.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblPassword.setFont(UITheme.font(Font.BOLD, 11));
         lblPassword.setForeground(TEXT_MUTED);
         lblPassword.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         // Panel chứa password + nút hiển thị
         JPanel passwordWrapper = new JPanel(new BorderLayout(0, 0));
-        passwordWrapper.setOpaque(false);
+        passwordWrapper.setBackground(FIELD_BG);
+        passwordWrapper.setBorder(new RoundedLineBorder(FIELD_BORDER, 10, 14));
         passwordWrapper.setMaximumSize(FIELD_SIZE);
         passwordWrapper.setPreferredSize(FIELD_SIZE);
         passwordWrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         txtPassword = new JPasswordField();
-        styleField(txtPassword);
+        txtPassword.setFont(UITheme.font(Font.PLAIN, 14));
+        txtPassword.setForeground(TEXT_DARK);
+        txtPassword.setBackground(FIELD_BG);
+        txtPassword.setCaretColor(TEXT_DARK);
+        txtPassword.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        txtPassword.setOpaque(false);
         txtPassword.putClientProperty("JPasswordField.placeholderText", "Nhập mật khẩu...");
+        
+        txtPassword.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                passwordWrapper.setBorder(new RoundedLineBorder(FIELD_FOCUS, 10, 14));
+                passwordWrapper.setBackground(Color.WHITE);
+                txtPassword.setBackground(Color.WHITE);
+            }
+            @Override
+            public void focusLost(FocusEvent e) {
+                passwordWrapper.setBorder(new RoundedLineBorder(FIELD_BORDER, 10, 14));
+                passwordWrapper.setBackground(FIELD_BG);
+                txtPassword.setBackground(FIELD_BG);
+            }
+        });
 
         // Nút hiển thị mật khẩu
-        JButton btnShowPassword = new JButton("👁");
-        btnShowPassword.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        JButton btnShowPassword = new JButton(new hdkmanagement.util.IconUtil(hdkmanagement.util.IconUtil.IconType.EYE_OFF, 20, TEXT_MUTED));
         btnShowPassword.setFocusPainted(false);
         btnShowPassword.setBorderPainted(false);
         btnShowPassword.setContentAreaFilled(false);
@@ -197,10 +232,10 @@ public class frmDangNhap extends JFrame {
         btnShowPassword.addActionListener(e -> {
             if (txtPassword.getEchoChar() == 0) {
                 txtPassword.setEchoChar('•');
-                btnShowPassword.setText("👁");
+                btnShowPassword.setIcon(new hdkmanagement.util.IconUtil(hdkmanagement.util.IconUtil.IconType.EYE_OFF, 20, TEXT_MUTED));
             } else {
                 txtPassword.setEchoChar((char) 0);
-                btnShowPassword.setText("👁‍🗨");
+                btnShowPassword.setIcon(new hdkmanagement.util.IconUtil(hdkmanagement.util.IconUtil.IconType.EYE, 20, TEXT_MUTED));
             }
         });
 
@@ -214,7 +249,7 @@ public class frmDangNhap extends JFrame {
 
         // ----- Quên mật khẩu -----
         JLabel lblForgot = new JLabel("Quên mật khẩu?");
-        lblForgot.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblForgot.setFont(UITheme.font(Font.PLAIN, 12));
         lblForgot.setForeground(FIELD_FOCUS);
         lblForgot.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         lblForgot.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -222,7 +257,7 @@ public class frmDangNhap extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 JOptionPane.showMessageDialog(frmDangNhap.this,
-                    "Vui lòng liên hệ quản trị viên để đặt lại mật khẩu!\n📞 Hotline: 1900 9999",
+                    "Vui lòng liên hệ quản trị viên để đặt lại mật khẩu!\n Hotline: 1900 9999",
                     "Hỗ trợ", JOptionPane.INFORMATION_MESSAGE);
             }
         });
@@ -231,7 +266,7 @@ public class frmDangNhap extends JFrame {
 
         // ----- Status -----
         lblStatus = new JLabel(" ");
-        lblStatus.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblStatus.setFont(UITheme.font(Font.PLAIN, 12));
         lblStatus.setForeground(DANGER_COLOR);
         lblStatus.setAlignmentX(Component.LEFT_ALIGNMENT);
         rightPanel.add(lblStatus);
@@ -256,7 +291,7 @@ public class frmDangNhap extends JFrame {
         // Footer
         rightPanel.add(Box.createVerticalGlue());
         JLabel lblFooter = new JLabel("© 2024 HDK Management - Version 2.0");
-        lblFooter.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblFooter.setFont(UITheme.font(Font.PLAIN, 11));
         lblFooter.setForeground(TEXT_MUTED);
         lblFooter.setAlignmentX(Component.LEFT_ALIGNMENT);
         rightPanel.add(lblFooter);
@@ -277,7 +312,7 @@ public class frmDangNhap extends JFrame {
 
     /** Style hiện đại cho ô nhập liệu - KÍCH THƯỚC CỐ ĐỊNH */
     private void styleField(JTextField field) {
-        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setFont(UITheme.font(Font.PLAIN, 14));
         field.setForeground(TEXT_DARK);
         field.setBackground(FIELD_BG);
         field.setCaretColor(TEXT_DARK);
@@ -335,7 +370,7 @@ public class frmDangNhap extends JFrame {
                 super.paintComponent(g);
             }
         };
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setFont(UITheme.font(Font.BOLD, 14));
         button.setForeground(fg);
         button.setFocusPainted(false);
         button.setContentAreaFilled(false);
@@ -394,14 +429,14 @@ public class frmDangNhap extends JFrame {
         String password = new String(txtPassword.getPassword()).trim();
 
         if (username.isEmpty() || password.isEmpty()) {
-            lblStatus.setText("⚠️ Vui lòng nhập đầy đủ thông tin!");
+            lblStatus.setText("️ Vui lòng nhập đầy đủ thông tin!");
             lblStatus.setForeground(DANGER_COLOR);
             return;
         }
 
         btnLogin.setEnabled(false);
         btnLogin.setText("ĐANG XỬ LÝ...");
-        lblStatus.setText("⏳ Đang kiểm tra...");
+        lblStatus.setText(" Đang kiểm tra...");
         lblStatus.setForeground(GRAD_START);
 
         SwingUtilities.invokeLater(() -> {
@@ -409,7 +444,7 @@ public class frmDangNhap extends JFrame {
                 TaiKhoan taiKhoan = taiKhoanDAO.login(username, password);
 
                 if (taiKhoan != null) {
-                    lblStatus.setText("✅ Đăng nhập thành công!");
+                    lblStatus.setText(" Đăng nhập thành công!");
                     lblStatus.setForeground(new Color(76, 175, 80));
 
                     SessionManager session = SessionManager.getInstance();
@@ -421,13 +456,13 @@ public class frmDangNhap extends JFrame {
                         dashboard.setVisible(true);
                     });
                 } else {
-                    lblStatus.setText("❌ Sai tên đăng nhập hoặc mật khẩu!");
+                    lblStatus.setText(" Sai tên đăng nhập hoặc mật khẩu!");
                     lblStatus.setForeground(DANGER_COLOR);
                     txtPassword.setText("");
                     txtPassword.requestFocus();
                 }
             } catch (Exception ex) {
-                lblStatus.setText("❌ Lỗi: " + ex.getMessage());
+                lblStatus.setText(" Lỗi: " + ex.getMessage());
                 lblStatus.setForeground(DANGER_COLOR);
                 ex.printStackTrace();
             } finally {
@@ -474,5 +509,27 @@ public class frmDangNhap extends JFrame {
         public boolean isBorderOpaque() {
             return false;
         }
+    }
+
+    private void startAnimation() {
+        animationTimer = new Timer(16, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Hiệu ứng Lơ lửng (Floating)
+                floatAngle += 0.05f;
+                floatY = (float) Math.sin(floatAngle) * 15f;
+
+                // Cập nhật thời gian
+                java.text.SimpleDateFormat timeFmt = new java.text.SimpleDateFormat("HH:mm:ss");
+                java.text.SimpleDateFormat dateFmt = new java.text.SimpleDateFormat("EEEE, dd 'tháng' MM, yyyy", new java.util.Locale("vi", "VN"));
+                java.util.Date now = new java.util.Date();
+                currentTime = timeFmt.format(now);
+                currentDate = dateFmt.format(now);
+
+                // Chỉ repaint lại phần leftPanel thay vì toàn bộ mainPanel
+                repaint(0, 0, 450, getHeight());
+            }
+        });
+        animationTimer.start();
     }
 }

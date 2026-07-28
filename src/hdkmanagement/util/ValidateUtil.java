@@ -91,4 +91,12 @@ public class ValidateUtil {
             return 0;
         }
     }
+
+    /** Rút gọn số tiền thành dạng 1.5tr / 2.5tỷ để hiển thị trên biểu đồ */
+    public static String shortCurrency(double amount) {
+        if (amount >= 1_000_000_000) return String.format("%.1ftỷ", amount / 1_000_000_000);
+        if (amount >= 1_000_000)     return String.format("%.1ftr", amount / 1_000_000);
+        if (amount >= 1_000)         return String.format("%.0fk", amount / 1_000);
+        return String.format("%.0f", amount);
+    }
 }

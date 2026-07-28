@@ -19,8 +19,8 @@ public class NhanVienDAO implements IDAO<NhanVien> {
     @Override
     public boolean insert(NhanVien entity) {
         String sql = "INSERT INTO NhanVien (MaNV_Code, HoTen, GioiTinh, NgaySinh, DiaChi, " +
-                     "SDT, Email, ChucVu, LuongCoBan, NgayVaoLam, GhiChu) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                     "SDT, Email, ChucVu, LuongCoBan, TyLeHoaHong, NgayVaoLam, GhiChu) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = db.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, entity.getMaNV_Code());
             ps.setString(2, entity.getHoTen());
@@ -31,8 +31,9 @@ public class NhanVienDAO implements IDAO<NhanVien> {
             ps.setString(7, entity.getEmail());
             ps.setString(8, entity.getChucVu());
             ps.setDouble(9, entity.getLuongCoBan());
-            ps.setDate(10, entity.getNgayVaoLam());
-            ps.setString(11, entity.getGhiChu());
+            ps.setDouble(10, entity.getTyLeHoaHong());
+            ps.setDate(11, entity.getNgayVaoLam());
+            ps.setString(12, entity.getGhiChu());
             
             int affected = ps.executeUpdate();
             if (affected > 0) {
@@ -52,7 +53,7 @@ public class NhanVienDAO implements IDAO<NhanVien> {
     @Override
     public boolean update(NhanVien entity) {
         String sql = "UPDATE NhanVien SET HoTen = ?, GioiTinh = ?, NgaySinh = ?, " +
-                     "DiaChi = ?, SDT = ?, Email = ?, ChucVu = ?, LuongCoBan = ?, " +
+                     "DiaChi = ?, SDT = ?, Email = ?, ChucVu = ?, LuongCoBan = ?, TyLeHoaHong = ?, " +
                      "NgayVaoLam = ?, GhiChu = ?, TrangThai = ? WHERE MaNV = ?";
         try (PreparedStatement ps = db.getConnection().prepareStatement(sql)) {
             ps.setString(1, entity.getHoTen());
@@ -63,10 +64,11 @@ public class NhanVienDAO implements IDAO<NhanVien> {
             ps.setString(6, entity.getEmail());
             ps.setString(7, entity.getChucVu());
             ps.setDouble(8, entity.getLuongCoBan());
-            ps.setDate(9, entity.getNgayVaoLam());
-            ps.setString(10, entity.getGhiChu());
-            ps.setBoolean(11, entity.isTrangThai());
-            ps.setInt(12, entity.getMaNV());
+            ps.setDouble(9, entity.getTyLeHoaHong());
+            ps.setDate(10, entity.getNgayVaoLam());
+            ps.setString(11, entity.getGhiChu());
+            ps.setBoolean(12, entity.isTrangThai());
+            ps.setInt(13, entity.getMaNV());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -149,6 +151,7 @@ public class NhanVienDAO implements IDAO<NhanVien> {
         nv.setEmail(rs.getString("Email"));
         nv.setChucVu(rs.getString("ChucVu"));
         nv.setLuongCoBan(rs.getDouble("LuongCoBan"));
+        try { nv.setTyLeHoaHong(rs.getDouble("TyLeHoaHong")); } catch (SQLException ignore) {}
         nv.setNgayVaoLam(rs.getDate("NgayVaoLam"));
         nv.setTrangThai(rs.getBoolean("TrangThai"));
         nv.setGhiChu(rs.getString("GhiChu"));

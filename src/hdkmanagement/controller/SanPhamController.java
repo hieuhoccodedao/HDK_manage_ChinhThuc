@@ -54,7 +54,11 @@ public class SanPhamController extends BaseController {
                 return false;
             }
             
-            return sanPhamDAO.insert(sanPham);
+            boolean success = sanPhamDAO.insert(sanPham);
+            if (success) {
+                hdkmanagement.dao.SystemLogDAO.getInstance().logAction("Thêm sản phẩm", "Thêm sản phẩm: " + sanPham.getTenSP() + " (" + sanPham.getMaSP_Code() + ")");
+            }
+            return success;
         } catch (Exception e) {
             showError("Lỗi thêm sản phẩm: " + e.getMessage());
             return false;
@@ -67,7 +71,11 @@ public class SanPhamController extends BaseController {
             if (!validateSanPham(sanPham)) {
                 return false;
             }
-            return sanPhamDAO.update(sanPham);
+            boolean success = sanPhamDAO.update(sanPham);
+            if (success) {
+                hdkmanagement.dao.SystemLogDAO.getInstance().logAction("Cập nhật sản phẩm", "Cập nhật sản phẩm: " + sanPham.getTenSP() + " (" + sanPham.getMaSP_Code() + ")");
+            }
+            return success;
         } catch (Exception e) {
             showError("Lỗi cập nhật sản phẩm: " + e.getMessage());
             return false;
@@ -80,7 +88,11 @@ public class SanPhamController extends BaseController {
             if (!showConfirm("Bạn có chắc muốn xóa sản phẩm này?")) {
                 return false;
             }
-            return sanPhamDAO.delete(id);
+            boolean success = sanPhamDAO.delete(id);
+            if (success) {
+                hdkmanagement.dao.SystemLogDAO.getInstance().logAction("Xóa sản phẩm", "Xóa sản phẩm ID: " + id);
+            }
+            return success;
         } catch (Exception e) {
             showError("Lỗi xóa sản phẩm: " + e.getMessage());
             return false;

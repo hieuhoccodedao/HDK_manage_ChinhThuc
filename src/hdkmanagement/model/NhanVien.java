@@ -15,6 +15,7 @@ public class NhanVien {
     private String email;
     private String chucVu;
     private double luongCoBan;
+    private double tyLeHoaHong;  // % hoa hồng trên doanh số
     private Date ngayVaoLam;
     private boolean trangThai;
     private String ghiChu;
@@ -67,6 +68,8 @@ public class NhanVien {
     public void setChucVu(String chucVu) { this.chucVu = chucVu; }
     public double getLuongCoBan() { return luongCoBan; }
     public void setLuongCoBan(double luongCoBan) { this.luongCoBan = luongCoBan; }
+    public double getTyLeHoaHong() { return tyLeHoaHong; }
+    public void setTyLeHoaHong(double v) { this.tyLeHoaHong = v; }
     public Date getNgayVaoLam() { return ngayVaoLam; }
     public void setNgayVaoLam(Date ngayVaoLam) { this.ngayVaoLam = ngayVaoLam; }
     public boolean isTrangThai() { return trangThai; }

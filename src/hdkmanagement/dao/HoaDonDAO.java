@@ -175,4 +175,32 @@ public class HoaDonDAO implements IDAO<HoaDon> {
         hd.setNgayTao(rs.getTimestamp("NgayTao"));
         return hd;
     }
+
+    /** Lấy tổng doanh thu trong khoảng thời gian */
+    public double getRevenueByPeriod(String tuNgay, String denNgay) {
+        String sql = "SELECT IFNULL(SUM(TongTien), 0) as Total FROM HoaDon WHERE DATE(NgayBan) BETWEEN ? AND ? AND TrangThai = 1";
+        try (PreparedStatement ps = db.getConnection().prepareStatement(sql)) {
+            ps.setString(1, tuNgay);
+            ps.setString(2, denNgay);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getDouble("Total");
+        } catch (SQLException e) { e.printStackTrace(); }
+        return 0;
+    }
+
+    /** Giá vốn hàng bán = tổng (GiaNhap * SoLuong) của các chi tiết HĐ trong kỳ */
+    public double getGiaVonByPeriod(String tuNgay, String denNgay) {
+        String sql = "SELECT IFNULL(SUM(ct.SoLuong * sp.GiaNhap), 0) AS GiaVon " +
+                     "FROM ChiTietHoaDon ct " +
+                     "JOIN HoaDon hd ON ct.MaHD = hd.MaHD " +
+                     "JOIN SanPham sp ON ct.MaSP = sp.MaSP " +
+                     "WHERE DATE(hd.NgayBan) BETWEEN ? AND ? AND hd.TrangThai = 1";
+        try (PreparedStatement ps = db.getConnection().prepareStatement(sql)) {
+            ps.setString(1, tuNgay);
+            ps.setString(2, denNgay);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getDouble("GiaVon");
+        } catch (SQLException e) { e.printStackTrace(); }
+        return 0;
+    }
 }
